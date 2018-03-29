@@ -1,0 +1,15 @@
+{
+  "name": "boolbuilder-php",
+  "version": "0.1.0",
+  "description": "querybuilder-like object to elasticsearch bool query object parser/transformer, for php",
+  "main": "index.js",
+  "author": "Saxon W. Stiller",
+  "license": "MIT",
+  "devDependencies": {
+    "@prettier/plugin-php": "prettier/plugin-php",
+    "prettier": "prettier/prettier"
+  },
+  "scripts": {
+    "format": "prettier --write src/**/*.php"
+  }
+}
