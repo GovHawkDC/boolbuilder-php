@@ -14,4 +14,10 @@ final class EsTest extends TestCase
     {
         $this->assertEquals(\Boolbuilder\ES\getArrayValue('1, 2'), ['1', '2']);
     }
+
+    public function testNonArrayStringArgToGetArrayValueThrows()
+    {
+        $this->expectException(\Exception::class);
+        \Boolbuilder\ES\getArrayValue(true);
+    }
 }
