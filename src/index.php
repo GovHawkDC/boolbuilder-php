@@ -3,5 +3,7 @@ namespace Boolbuilder;
 
 function hello()
 {
-    return 'world';
+    $a = 'hello';
+    $b = 'world';
+    return "$a $b";
 }
