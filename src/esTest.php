@@ -20,4 +20,15 @@ final class EsTest extends TestCase
         $this->expectException(\Exception::class);
         \Boolbuilder\ES\getArrayValue(true);
     }
+
+    public function testIsNullOperatorArgToGetFragmentReturnsExists()
+    {
+        $this->assertEquals(
+            \Boolbuilder\ES\getFragment([
+                'field' => 'name',
+                'operator' => 'is_null'
+            ]),
+            ['exists' => ['field' => 'name']]
+        );
+    }
 }
