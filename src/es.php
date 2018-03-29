@@ -35,6 +35,74 @@ function getClause($group, $rule)
     }
 }
 
+function getFragment($rule)
+{
+    $field = $rule['field'];
+
+    switch ($rule['operator']) {
+        case 'is_not_null':
+        case 'is_null':
+            return ['exists' => ['field' => $field]];
+        default:
+            return [getOperator($rule) => [$field => getValue($rule)]];
+    }
+}
+
+function getValue($rule)
+{
+    $operator = $rule['operator'];
+    $value = $rule['value'];
+
+    switch ($operator) {
+        case 'between':
+            return ['gte' => $value['gte'], 'lte' => $value['lte']];
+        case 'contains':
+        case 'equal':
+        case 'is_not_null':
+        case 'is_null':
+        case 'not_equal':
+            return $value;
+        case 'greater':
+            return ['gt' => $value];
+        case 'greater_or_equal':
+            return ['gte' => $value];
+        case 'in':
+        case 'not_in':
+            return getArrayValue($value);
+        case 'less':
+            return ['lt' => $value];
+        case 'less_or_equal':
+            return ['lte' => $value];
+        case 'proximity':
+            return ['query' => $value['query'], 'slop' => $value['slop']];
+        default:
+            throw new Exception(
+                "Unable to build ES bool query with operator: "$condition""
+            );
+    }
+}
+
+function getOperator($rule)
+{
+    if (preg_match('/.(\\*|\\?)/', $rule['value'])) {
+        return 'wildcard';
+    }
+
+    switch ($rule['operator']) {
+        case 'contains':
+            return 'match';
+        case 'equal':
+        case 'not_equal':
+        case 'proximity':
+            return 'match_phrase';
+        case 'in':
+        case 'not_in':
+            return 'terms';
+        default:
+            return 'range';
+    }
+}
+
 function isNegativeOperator($operator)
 {
     switch ($operator) {
