@@ -1,10 +1,12 @@
 <?php
+include 'es.php';
+
 use PHPUnit\Framework\TestCase;
 
 final class EsTest extends TestCase
 {
-    public function testDummy()
+    public function testArrayArgIsSelf()
     {
-        $this->assertEquals(1 + 1, 2);
+        $this->assertEquals(\Boolbuilder\ES\getArrayValue([1, 2]), [1, 2]);
     }
 }
