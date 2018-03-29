@@ -18,3 +18,31 @@ function getArrayValue($value)
         )
     );
 }
+
+function getClause($group, $rule)
+{
+    $condition = isset($group['condition']) ? $group['condition'] : 'AND';
+
+    switch (strtoupper($condition)) {
+        case 'OR':
+            return 'should';
+        case 'AND':
+            return isNegativeOperator($rule['operator']) ? 'must_not' : 'must';
+        default:
+            throw new Exception(
+                "Unable to build ES bool query with condition: "$condition""
+            );
+    }
+}
+
+function isNegativeOperator($operator)
+{
+    switch ($operator) {
+        case 'is_null':
+        case 'not_equal':
+        case 'not_in':
+            return true;
+        default:
+            return false;
+    }
+}
