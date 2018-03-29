@@ -1,4 +1,7 @@
 {
-    "require-dev": {
-    }
+  "name": "doubleswirve/boolbuilder-php",
+  "type": "library",
+  "description":
+    "querybuilder-like object to elasticsearch bool query object parser/transformer, for php",
+  "license": "MIT"
 }
