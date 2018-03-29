@@ -77,7 +77,7 @@ function getValue($rule)
         case 'less_or_equal':
             return ['lte' => $value];
         case 'proximity':
-            return ['query' => $value['query'], 'slop' => $value['slop']];
+            return ['query' => $value[0], 'slop' => $value[1]];
         default:
             throw new \Exception(
                 sprintf(
@@ -90,7 +90,7 @@ function getValue($rule)
 
 function getOperator($rule)
 {
-    if (preg_match('/.(\\*|\\?)/', $rule['value'])) {
+    if (preg_match('/.(\\*|\\?)/', json_encode($rule['value']))) {
         return 'wildcard';
     }
 

@@ -31,4 +31,16 @@ final class EsTest extends TestCase
             ['exists' => ['field' => 'name']]
         );
     }
+
+    public function testProximityOperatorArgToGetFragmentReturnsStandard()
+    {
+        $this->assertEquals(
+            \Boolbuilder\ES\getFragment([
+                'field' => 'name',
+                'operator' => 'proximity',
+                'value' => ['a', '2']
+            ]),
+            ['match_phrase' => ['name' => ['query' => 'a', 'slop' => '2']]]
+        );
+    }
 }
