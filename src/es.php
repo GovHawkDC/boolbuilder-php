@@ -11,7 +11,7 @@ function getArrayValue($value)
         return array_map('trim', explode(',', $value));
     }
 
-    throw new Exception(
+    throw new \Exception(
         sprintf(
             'Unable to build ES bool query with value type: "%s"',
             gettype($value)
@@ -29,7 +29,7 @@ function getClause($group, $rule)
         case 'AND':
             return isNegativeOperator($rule['operator']) ? 'must_not' : 'must';
         default:
-            throw new Exception(
+            throw new \Exception(
                 sprintf(
                     'Unable to build ES bool query with condition: "%s"',
                     $condition
@@ -79,7 +79,7 @@ function getValue($rule)
         case 'proximity':
             return ['query' => $value['query'], 'slop' => $value['slop']];
         default:
-            throw new Exception(
+            throw new \Exception(
                 sprintf(
                     'Unable to build ES bool query with operator: "%s"',
                     $condition
