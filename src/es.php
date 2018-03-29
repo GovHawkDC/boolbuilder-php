@@ -30,7 +30,10 @@ function getClause($group, $rule)
             return isNegativeOperator($rule['operator']) ? 'must_not' : 'must';
         default:
             throw new Exception(
-                "Unable to build ES bool query with condition: "$condition""
+                sprintf(
+                    'Unable to build ES bool query with condition: "%s"',
+                    $condition
+                )
             );
     }
 }
@@ -77,7 +80,10 @@ function getValue($rule)
             return ['query' => $value['query'], 'slop' => $value['slop']];
         default:
             throw new Exception(
-                "Unable to build ES bool query with operator: "$condition""
+                sprintf(
+                    'Unable to build ES bool query with operator: "%s"',
+                    $condition
+                )
             );
     }
 }
