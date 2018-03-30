@@ -13,6 +13,7 @@
     "pretty-quick": "^1.4.1"
   },
   "scripts": {
-    "precommit": "pretty-quick --staged"
+    "precommit": "pretty-quick --staged",
+    "test": "composer run-script test"
   }
 }
