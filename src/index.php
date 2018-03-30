@@ -1,8 +1,6 @@
 <?php
 namespace Boolbuilder;
 
-include 'es.php';
-
 function transform($group, $filters = [])
 {
     if (!$group) {
@@ -10,7 +8,7 @@ function transform($group, $filters = [])
     }
 
     $QB = isset($group['QB']) ? $group['QB'] : '';
-    $rules = isset($group['$rules']) ? $group['$rules'] : [];
+    $rules = isset($group['rules']) ? $group['rules'] : [];
 
     if (count($rules) < 1) {
         return [];
@@ -20,21 +18,25 @@ function transform($group, $filters = [])
 
     if (isset($filters[$QB])) {
         $userProvidedFilter = $filters[$QB];
-        return $userProvidedFilter(
+        return [
+            'bool' => $userProvidedFilter(
+                $group,
+                $rules,
+                $filters,
+                $postFilterUserFuncName
+            )
+        ];
+    }
+
+    return [
+        'bool' => call_user_func(
+            __NAMESPACE__ . '\\transformGroupDefaultFilter',
             $group,
             $rules,
             $filters,
             $postFilterUserFuncName
-        );
-    }
-
-    return call_user_func(
-        __NAMESPACE__ . '\\transformGroupDefaultFilter',
-        $group,
-        $rules,
-        $filters,
-        $postFilterUserFuncName
-    );
+        )
+    ];
 }
 
 function transformGroupPostFilter($group, $rules, $filters)
@@ -53,9 +55,9 @@ function transformGroupPostFilter($group, $rules, $filters)
         $existingFragments = isset($carry[$clause]) ? $carry[$clause] : [];
 
         return array_merge($carry, [
-            $clause => array_merge($existingFragments, $fragment)
+            $clause => array_merge($existingFragments, [$fragment])
         ]);
-    });
+    }, []);
 }
 
 function transformGroupDefaultFilter(
