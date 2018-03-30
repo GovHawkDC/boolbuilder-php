@@ -104,4 +104,15 @@ final class EsTest extends TestCase
             'match'
         );
     }
+
+    public function testUnknownToGetOperatorIsRange()
+    {
+        $this->assertEquals(
+            \Boolbuilder\ES\getOperator([
+                'operator' => '>>>',
+                'value' => 'hello world'
+            ]),
+            'range'
+        );
+    }
 }
