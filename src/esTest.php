@@ -59,4 +59,22 @@ final class EsTest extends TestCase
             'must'
         );
     }
+
+    public function testOrCondAndAnythingToGetClauseReturnsMust()
+    {
+        $this->assertEquals(
+            \Boolbuilder\ES\getClause(['condition' => 'OR'], [
+                'operator' => 'not_equal'
+            ]),
+            'should'
+        );
+    }
+
+    public function testUnhandledCondToGetClauseThrows()
+    {
+        $this->expectException(\Exception::class);
+        \Boolbuilder\ES\getClause(['condition' => 'xor'], [
+            'operator' => 'not_equal'
+        ]);
+    }
 }
