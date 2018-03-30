@@ -70,5 +70,25 @@ function transformGroupDefaultFilter(
 
 function transformRule($group, $rule, $filters)
 {
+    $condition = isset($group['condition']) ? $group['condition'] : '';
+    $operator = isset($rule['operator']) ? $rule['operator'] : '';
+    $rules = isset($rule['rules']) ? $rule['rules'] : [];
 
+    if (count($rules) > 0) {
+        return call_user_func(__NAMESPACE__ . '\\transform', $rule, $filters);
+    }
+
+    $fragment = \Boolbuilder\ES\getFragment($rule);
+
+    // this is a corner case, when we have an "or" group and a negative operator,
+    // we express this with a sub boolean query and must_not
+    if (
+        strtoupper($condition) === 'OR' &&
+        \Boolbuilder\ES\isNegativeOperator($operator)
+    ) {
+
+        return ['bool' => ['must_not' => [$fragment]]];
+    }
+
+    return $fragment;
 }
