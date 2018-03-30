@@ -51,4 +51,12 @@ final class EsTest extends TestCase
             'must_not'
         );
     }
+
+    public function testDefaultCondAndNonNegativeToGetClauseReturnsMust()
+    {
+        $this->assertEquals(
+            \Boolbuilder\ES\getClause([], ['operator' => 'equal']),
+            'must'
+        );
+    }
 }
