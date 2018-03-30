@@ -3,8 +3,26 @@ use PHPUnit\Framework\TestCase;
 
 final class IndexTest extends TestCase
 {
-    public function testDummy()
+    public function testQBData0()
     {
-        $this->assertEquals(1 + 1, 2);
+        $QBdata = [
+            'condition' => 'AND',
+            'rules' => [
+                [
+                    'id' => 'name',
+                    'field' => 'name',
+                    'type' => 'string',
+                    'input' => 'text',
+                    'operator' => 'contains',
+                    'value' => '123'
+                ]
+            ]
+        ];
+
+        $result = \Boolbuilder\transform($QBdata);
+
+        $expected = ['bool' => ['must' => [['match' => ['name' => '123']]]]];
+
+        $this->assertEquals($result, $expected);
     }
 }
