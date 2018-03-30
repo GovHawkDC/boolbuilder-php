@@ -93,4 +93,15 @@ final class EsTest extends TestCase
             'wildcard'
         );
     }
+
+    public function testContainsToGetOperatorIsMatch()
+    {
+        $this->assertEquals(
+            \Boolbuilder\ES\getOperator([
+                'operator' => 'contains',
+                'value' => ''
+            ]),
+            'match'
+        );
+    }
 }
