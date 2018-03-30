@@ -58,7 +58,7 @@ function getValue($rule)
 
     switch ($operator) {
         case 'between':
-            return ['gte' => $value['gte'], 'lte' => $value['lte']];
+            return ['gte' => $value[0], 'lte' => $value[1]];
         case 'contains':
         case 'equal':
         case 'is_not_null':

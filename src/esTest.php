@@ -115,4 +115,15 @@ final class EsTest extends TestCase
             'range'
         );
     }
+
+    public function testBetweenToGetValueIsGteLteArray()
+    {
+        $this->assertEquals(
+            \Boolbuilder\ES\getValue([
+                'operator' => 'between',
+                'value' => ['1', '2']
+            ]),
+            ['gte' => '1', 'lte' => '2']
+        );
+    }
 }
