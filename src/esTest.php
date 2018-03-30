@@ -1,6 +1,4 @@
 <?php
-include 'es.php';
-
 use PHPUnit\Framework\TestCase;
 
 final class EsTest extends TestCase
