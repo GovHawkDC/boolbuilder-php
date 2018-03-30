@@ -85,4 +85,12 @@ final class EsTest extends TestCase
             'wildcard'
         );
     }
+
+    public function testWildcardQuestionCharToGetOperatorIsWildcard()
+    {
+        $this->assertEquals(
+            \Boolbuilder\ES\getOperator(['value' => 'hello world?']),
+            'wildcard'
+        );
+    }
 }
