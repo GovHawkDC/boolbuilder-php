@@ -90,7 +90,10 @@ function getValue($rule)
 
 function getOperator($rule)
 {
+    // NOTE: Using `json_encode` here to stringify any type of value that
+    // is passed, since it can be a string, array, etc.
     if (preg_match('/.(\\*|\\?)/', json_encode($rule['value']))) {
+
         return 'wildcard';
     }
 
