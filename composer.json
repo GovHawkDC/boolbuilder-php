@@ -4,10 +4,13 @@
   "description":
     "querybuilder-like object to elasticsearch bool query object parser/transformer, for php",
   "license": "MIT",
+  "autoload": {
+    "files": ["src/es.php", "src/index.php"]
+  },
   "require-dev": {
     "phpunit/phpunit": "^7"
   },
   "scripts": {
-    "test": "./vendor/bin/phpunit src/"
+    "test": "./vendor/bin/phpunit"
   }
 }
