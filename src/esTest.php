@@ -77,4 +77,12 @@ final class EsTest extends TestCase
             'operator' => 'not_equal'
         ]);
     }
+
+    public function testWildcardSplatCharToGetOperatorIsWildcard()
+    {
+        $this->assertEquals(
+            \Boolbuilder\ES\getOperator(['value' => 'hello*']),
+            'wildcard'
+        );
+    }
 }
