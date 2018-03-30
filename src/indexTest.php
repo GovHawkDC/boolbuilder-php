@@ -117,4 +117,68 @@ final class IndexTest extends TestCase
 
         $this->assertEquals($result, $expected);
     }
+
+    public function testQBData4()
+    {
+        $QBdata = [
+            'condition' => 'AND',
+            'rules' => [
+                [
+                    'id' => 'name',
+                    'field' => 'name',
+                    'type' => 'string',
+                    'input' => 'text',
+                    'operator' => 'contains',
+                    'value' => '123'
+                ],
+                [
+                    'condition' => 'or',
+                    'rules' => [
+                        [
+                            'id' => 'misc',
+                            'field' => 'misc',
+                            'type' => 'string',
+                            'input' => 'text',
+                            'operator' => 'is_null',
+                            'value' => null
+                        ],
+                        [
+                            'id' => 'type',
+                            'field' => 'type',
+                            'type' => 'string',
+                            'input' => 'checkbox',
+                            'operator' => 'in',
+                            'value' => ['book']
+                        ]
+                    ]
+                ]
+            ]
+        ];
+
+        $result = \Boolbuilder\transform($QBdata);
+
+        $expected = [
+            'bool' => [
+                'must' => [
+                    ['match' => ['name' => '123']],
+                    [
+                        'bool' => [
+                            'should' => [
+                                [
+                                    'bool' => [
+                                        'must_not' => [
+                                            ['exists' => ['field' => 'misc']]
+                                        ]
+                                    ]
+                                ],
+                                ['terms' => ['type' => ['book']]]
+                            ]
+                        ]
+                    ]
+                ]
+            ]
+        ];
+
+        $this->assertEquals($result, $expected);
+    }
 }
