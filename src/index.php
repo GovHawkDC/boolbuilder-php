@@ -1,9 +1,27 @@
 <?php
 namespace Boolbuilder;
 
-function hello()
+function transform($group, $filters = [])
 {
-    $a = 'hello';
-    $b = 'world';
-    return "$a $b";
+
+}
+
+function transformGroupPostFilter($group, $rules, $filters)
+{
+
+}
+
+function transformGroupDefaultFilter($group, $rules, $filters, $postFilter)
+{
+
+}
+
+function transformRule($group, $rule, $filters)
+{
+
+}
+
+function mergeByClause($accumulator, $data)
+{
+
 }
