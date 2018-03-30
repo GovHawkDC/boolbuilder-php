@@ -106,4 +106,15 @@ final class IndexTest extends TestCase
 
         $this->assertEquals($result, $expected);
     }
+
+    public function testQBData3()
+    {
+        $QBdata = [];
+
+        $result = \Boolbuilder\transform($QBdata);
+
+        $expected = [];
+
+        $this->assertEquals($result, $expected);
+    }
 }
