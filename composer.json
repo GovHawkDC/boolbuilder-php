@@ -8,6 +8,6 @@
     "phpunit/phpunit": "^7"
   },
   "scripts": {
-    "phpunit": "./vendor/bin/phpunit src/"
+    "test": "./vendor/bin/phpunit src/"
   }
 }
