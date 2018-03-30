@@ -181,4 +181,103 @@ final class IndexTest extends TestCase
 
         $this->assertEquals($result, $expected);
     }
+
+    public function testQBData5()
+    {
+        $QBdata = [
+            'condition' => 'AND',
+            'rules' => [
+                [
+                    'id' => 'name',
+                    'field' => 'name',
+                    'type' => 'string',
+                    'input' => 'text',
+                    'operator' => 'contains',
+                    'value' => '123'
+                ],
+                [
+                    'QB' => 'book',
+                    'condition' => 'or',
+                    'rules' => [
+                        [
+                            'id' => 'misc',
+                            'field' => 'misc',
+                            'type' => 'string',
+                            'input' => 'text',
+                            'operator' => 'is_null',
+                            'value' => null
+                        ],
+                        [
+                            'id' => 'type',
+                            'field' => 'type',
+                            'type' => 'string',
+                            'input' => 'checkbox',
+                            'operator' => 'in',
+                            'value' => ['book']
+                        ]
+                    ]
+                ]
+            ]
+        ];
+
+        $filters = [
+            'book' => function (
+                $group,
+                $rules,
+                $filters,
+                $postFilterUserFuncName
+            ) {
+                return [
+                    'must' => [
+                        ['terms' => ['_type' => ['book']]],
+                        [
+                            'bool' => call_user_func(
+                                $postFilterUserFuncName,
+                                $group,
+                                $rules,
+                                $filters
+                            )
+                        ]
+                    ]
+                ];
+            }
+        ];
+
+        $result = \Boolbuilder\transform($QBdata, $filters);
+
+        $expected = [
+            'bool' => [
+                'must' => [
+                    ['match' => ['name' => '123']],
+                    [
+                        'bool' => [
+                            'must' => [
+                                ['terms' => ['_type' => ['book']]],
+                                [
+                                    'bool' => [
+                                        'should' => [
+                                            [
+                                                'bool' => [
+                                                    'must_not' => [
+                                                        [
+                                                            'exists' => [
+                                                                'field' => 'misc'
+                                                            ]
+                                                        ]
+                                                    ]
+                                                ]
+                                            ],
+                                            ['terms' => ['type' => ['book']]]
+                                        ]
+                                    ]
+                                ]
+                            ]
+                        ]
+                    ]
+                ]
+            ]
+        ];
+
+        $this->assertEquals($result, $expected);
+    }
 }
