@@ -82,7 +82,7 @@ function getValue($rule)
             throw new \Exception(
                 sprintf(
                     'Unable to build ES bool query with operator: "%s"',
-                    $condition
+                    $operator
                 )
             );
     }

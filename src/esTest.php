@@ -126,4 +126,10 @@ final class EsTest extends TestCase
             ['gte' => '1', 'lte' => '2']
         );
     }
+
+    public function testUnhandledToGetValueThrows()
+    {
+        $this->expectException(\Exception::class);
+        \Boolbuilder\ES\getValue(['operator' => '<>', 'value' => ['1', '2']]);
+    }
 }
