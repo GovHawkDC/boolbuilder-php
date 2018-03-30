@@ -27,7 +27,10 @@ function getClause($group, $rule)
         case 'OR':
             return 'should';
         case 'AND':
-            return isNegativeOperator($rule['operator']) ? 'must_not' : 'must';
+            return isset($rule['operator']) &&
+            isNegativeOperator($rule['operator'])
+                ? 'must_not'
+                : 'must';
         default:
             throw new \Exception(
                 sprintf(
