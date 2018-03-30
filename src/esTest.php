@@ -43,4 +43,12 @@ final class EsTest extends TestCase
             ['match_phrase' => ['name' => ['query' => 'a', 'slop' => '2']]]
         );
     }
+
+    public function testDefaultCondAndNegativeToGetClauseReturnsMustNot()
+    {
+        $this->assertEquals(
+            \Boolbuilder\ES\getClause([], ['operator' => 'not_equal']),
+            'must_not'
+        );
+    }
 }
