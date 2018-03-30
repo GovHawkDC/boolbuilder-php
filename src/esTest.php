@@ -132,4 +132,20 @@ final class EsTest extends TestCase
         $this->expectException(\Exception::class);
         \Boolbuilder\ES\getValue(['operator' => '<>', 'value' => ['1', '2']]);
     }
+
+    public function testIsNullToIsNegativeOperatorIsTrue()
+    {
+        $this->assertEquals(
+            \Boolbuilder\ES\isNegativeOperator('is_null'),
+            true
+        );
+    }
+
+    public function testGreaterToIsNegativeOperatorIsFalse()
+    {
+        $this->assertEquals(
+            \Boolbuilder\ES\isNegativeOperator('greater'),
+            false
+        );
+    }
 }
