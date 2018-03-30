@@ -58,9 +58,14 @@ function transformGroupPostFilter($group, $rules, $filters)
     });
 }
 
-function transformGroupDefaultFilter($group, $rules, $filters, $postFilter)
+function transformGroupDefaultFilter(
+    $group,
+    $rules,
+    $filters,
+    $postFilterUserFuncName
+)
 {
-
+    return call_user_func($postFilterUserFuncName, $group, $rules, $filters);
 }
 
 function transformRule($group, $rule, $filters)
