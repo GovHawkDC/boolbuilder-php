@@ -1,6 +1,8 @@
 <?php
 namespace Boolbuilder;
 
+include 'es.php';
+
 function transform($group, $filters = [])
 {
     if (!$group) {
@@ -37,7 +39,23 @@ function transform($group, $filters = [])
 
 function transformGroupPostFilter($group, $rules, $filters)
 {
+    $clausesAndFragments = array_map(function ($rule) use ($group, $filters) {
+        return [
+            'clause' => \Boolbuilder\ES\getClause($group, $rule),
+            'fragment' => transformRule($group, $rule, $filters)
+        ];
+    }, $rules);
 
+    return array_reduce($clausesAndFragments, function ($carry, $data) {
+        $clause = $data['clause'];
+        $fragment = $data['fragment'];
+
+        $existingFragments = isset($carry[$clause]) ? $carry[$clause] : [];
+
+        return array_merge($carry, [
+            $clause => array_merge($existingFragments, $fragment)
+        ]);
+    });
 }
 
 function transformGroupDefaultFilter($group, $rules, $filters, $postFilter)
@@ -46,11 +64,6 @@ function transformGroupDefaultFilter($group, $rules, $filters, $postFilter)
 }
 
 function transformRule($group, $rule, $filters)
-{
-
-}
-
-function mergeByClause($accumulator, $data)
 {
 
 }
