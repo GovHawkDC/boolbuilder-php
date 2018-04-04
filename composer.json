@@ -3,6 +3,9 @@
   "type": "library",
   "description":
     "querybuilder-like object to elasticsearch bool query object parser/transformer, for php",
+  "require": {
+    "php": "^5.3.3 || ^7.0"
+  },
   "license": "MIT",
   "autoload": {
     "files": ["src/es.php", "src/index.php"]
