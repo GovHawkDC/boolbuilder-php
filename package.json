@@ -1,6 +1,6 @@
 {
   "name": "boolbuilder-php",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description":
     "querybuilder-like object to elasticsearch bool query object parser/transformer, for php",
   "main": "index.js",
