@@ -50,14 +50,21 @@ function getFragment($rule)
         case 'is_null':
             return ['exists' => ['field' => $field]];
         default:
-            return [getOperator($rule) => [$field => getValue($rule)]];
+            $esOperator = getOperator($rule);
+            return [$esOperator => [$field => getValue($rule, $esOperator)]];
     }
 }
 
-function getValue($rule)
+function getValue($rule, $esOperator)
 {
     $operator = $rule['operator'];
     $value = $rule['value'];
+
+    if ($esOperator === 'wildcard') {
+        return is_string($value)
+            ? $value
+            : ['value' => $value[0], 'boost' => floatval($value[1])];
+    }
 
     switch ($operator) {
         case 'between':
@@ -80,7 +87,7 @@ function getValue($rule)
         case 'less_or_equal':
             return ['lte' => $value];
         case 'proximity':
-            return ['query' => $value[0], 'slop' => $value[1]];
+            return ['query' => $value[0], 'slop' => intval($value[1])];
         default:
             throw new \Exception(
                 sprintf(
@@ -95,7 +102,10 @@ function getOperator($rule)
 {
     // NOTE: Using `json_encode` here to stringify any type of value that
     // is passed, since it can be a string, array, etc.
-    if (preg_match('/.(\\*|\\?)/', json_encode($rule['value']))) {
+    if (
+        isWildcardesqueRule($rule) &&
+        preg_match('/.(\\*|\\?)/', json_encode($rule['value']))
+    ) {
 
         return 'wildcard';
     }
@@ -125,4 +135,37 @@ function isNegativeOperator($operator)
         default:
             return false;
     }
+}
+
+function isWildcardesqueRule($rule)
+{
+    // Don't want to step on toes of explicit case where "slop" is intended
+    if (isset($rule['operator']) && $rule['operator'] === 'proximity') {
+
+        return false;
+    }
+
+    if (isset($rule['type']) && $rule['type'] !== 'string') {
+        return false;
+    }
+
+    $v = $rule['value'];
+
+    // Value is a string (e.g., via single text field) and its type
+    // is intended to be a string
+    if (is_string($v)) {
+
+        return true;
+    }
+
+    // Covers "boost" case
+    // @see https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-wildcard-query.html
+    if (
+        is_array($v) && count($v) === 2 && is_string($v[0]) && is_numeric($v[1])
+    ) {
+
+        return true;
+    }
+
+    return false;
 }

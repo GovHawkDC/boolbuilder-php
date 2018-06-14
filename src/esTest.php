@@ -116,19 +116,20 @@ final class EsTest extends TestCase
 
     public function testBetweenToGetValueIsGteLteArray()
     {
-        $this->assertEquals(
-            \Boolbuilder\ES\getValue([
-                'operator' => 'between',
-                'value' => ['1', '2']
-            ]),
-            ['gte' => '1', 'lte' => '2']
-        );
+        $rule = ['operator' => 'between', 'value' => ['1', '2']];
+        $operator = \Boolbuilder\ES\getOperator($rule);
+        $this->assertEquals(\Boolbuilder\ES\getValue($rule, $operator), [
+            'gte' => '1',
+            'lte' => '2'
+        ]);
     }
 
     public function testUnhandledToGetValueThrows()
     {
         $this->expectException(\Exception::class);
-        \Boolbuilder\ES\getValue(['operator' => '<>', 'value' => ['1', '2']]);
+        $rule = ['operator' => '<>', 'value' => ['1', '2']];
+        $operator = \Boolbuilder\ES\getOperator($rule);
+        \Boolbuilder\ES\getValue($rule, $operator);
     }
 
     public function testIsNullToIsNegativeOperatorIsTrue()
