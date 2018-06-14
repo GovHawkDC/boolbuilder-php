@@ -95,7 +95,10 @@ function getOperator($rule)
 {
     // NOTE: Using `json_encode` here to stringify any type of value that
     // is passed, since it can be a string, array, etc.
-    if (preg_match('/.(\\*|\\?)/', json_encode($rule['value']))) {
+    if (
+        isWildcardesqueRule($rule) &&
+        preg_match('/.(\\*|\\?)/', json_encode($rule['value']))
+    ) {
 
         return 'wildcard';
     }
@@ -130,14 +133,12 @@ function isNegativeOperator($operator)
 function isWildcardesqueRule($rule)
 {
     // Don't want to step on toes of explicit case where "slop" is intended
-    if ($rule['operator'] === 'proximity') {
+    if (isset($rule['operator']) && $rule['operator'] === 'proximity') {
 
         return false;
     }
 
-    $isStringType = boolval(isset($rule['type']) && $rule['type'] === 'string');
-
-    if (!$isStringType) {
+    if (isset($rule['type']) && $rule['type'] !== 'string') {
         return false;
     }
 
