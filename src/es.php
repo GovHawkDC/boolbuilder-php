@@ -50,7 +50,8 @@ function getFragment($rule)
         case 'is_null':
             return ['exists' => ['field' => $field]];
         default:
-            return [getOperator($rule) => [$field => getValue($rule)]];
+            $esOperator = getOperator($rule);
+            return [$esOperator => [$field => getValue($rule)]];
     }
 }
 
