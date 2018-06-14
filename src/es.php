@@ -87,7 +87,7 @@ function getValue($rule, $esOperator)
         case 'less_or_equal':
             return ['lte' => $value];
         case 'proximity':
-            return ['query' => $value[0], 'slop' => $value[1]];
+            return ['query' => $value[0], 'slop' => intval($value[1])];
         default:
             throw new \Exception(
                 sprintf(
