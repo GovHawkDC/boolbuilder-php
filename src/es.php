@@ -129,6 +129,12 @@ function isNegativeOperator($operator)
 
 function isWildcardesqueRule($rule)
 {
+    // Don't want to step on toes of explicit case where "slop" is intended
+    if ($rule['operator'] === 'proximity') {
+
+        return false;
+    }
+
     $isStringType = boolval(isset($rule['type']) && $rule['type'] === 'string');
 
     if (!$isStringType) {
