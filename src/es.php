@@ -51,14 +51,20 @@ function getFragment($rule)
             return ['exists' => ['field' => $field]];
         default:
             $esOperator = getOperator($rule);
-            return [$esOperator => [$field => getValue($rule)]];
+            return [$esOperator => [$field => getValue($rule, $esOperator)]];
     }
 }
 
-function getValue($rule)
+function getValue($rule, $esOperator)
 {
     $operator = $rule['operator'];
     $value = $rule['value'];
+
+    if ($esOperator === 'wildcard') {
+        return is_string($value)
+            ? $value
+            : ['value' => $value[0], 'boost' => $value[1]];
+    }
 
     switch ($operator) {
         case 'between':
