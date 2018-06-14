@@ -63,7 +63,7 @@ function getValue($rule, $esOperator)
     if ($esOperator === 'wildcard') {
         return is_string($value)
             ? $value
-            : ['value' => $value[0], 'boost' => $value[1]];
+            : ['value' => $value[0], 'boost' => floatval($value[1])];
     }
 
     switch ($operator) {
