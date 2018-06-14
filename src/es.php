@@ -126,3 +126,32 @@ function isNegativeOperator($operator)
             return false;
     }
 }
+
+function isWildcardesqueRule($rule)
+{
+    $isStringType = boolval(isset($rule['type']) && $rule['type'] === 'string');
+
+    if (!$isStringType) {
+        return false;
+    }
+
+    $v = $rule['value'];
+
+    // Value is a string (e.g., via single text field) and its type
+    // is intended to be a string
+    if (is_string($v)) {
+
+        return true;
+    }
+
+    // Covers "boost" case
+    // @see https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-wildcard-query.html
+    if (
+        is_array($v) && count($v) === 2 && is_string($v[0]) && is_numeric($v[1])
+    ) {
+
+        return true;
+    }
+
+    return false;
+}
