@@ -76,7 +76,7 @@ function transformRule($group, $rule, $filters)
     $rules = isset($rule['rules']) ? $rule['rules'] : [];
 
     if (count($rules) > 0) {
-        return call_user_func(__NAMESPACE__ . '\\transform', $rule, $filters);
+        return transform($rule, $filters);
     }
 
     $fragment = \Boolbuilder\ES\getFragment($rule);
