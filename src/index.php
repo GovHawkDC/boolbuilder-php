@@ -46,6 +46,10 @@ function transformGroupPostFilter($group, $rules, $filters, $options)
         $clause = ES\getClause($group, $rule);
         $fragment = transformRule($group, $rule, $filters, $options);
 
+        if ($fragment === null) {
+            return $carry;
+        }
+
         $existingFragments = isset($carry[$clause]) ? $carry[$clause] : [];
 
         return array_merge($carry, [
@@ -62,6 +66,13 @@ function transformRule($group, $rule, $filters, $options)
 
     if (count($rules) > 0) {
         return transform($rule, $filters, $options);
+    }
+
+    if (
+        isset($options['filterFields']) &&
+        in_array($rule['field'], $options['filterFields'], true)
+    ) {
+        return null;
     }
 
     $fragment = ES\getFragment($rule);
