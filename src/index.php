@@ -3,7 +3,7 @@ namespace Boolbuilder;
 
 use Boolbuilder\ES;
 
-function transform($group, $filters = [])
+function transform($group, $filters = [], $options = [])
 {
     if (!$group) {
         return [];
@@ -25,40 +25,43 @@ function transform($group, $filters = [])
                 $group,
                 $rules,
                 $filters,
+                $options,
                 $postFilterUserFuncName
             )
         ];
     }
 
-    return ['bool' => transformGroupPostFilter($group, $rules, $filters)];
+    return [
+        'bool' => transformGroupPostFilter($group, $rules, $filters, $options)
+    ];
 }
 
-function transformGroupPostFilter($group, $rules, $filters)
+function transformGroupPostFilter($group, $rules, $filters, $options)
 {
-    return array_reduce(
-        $rules,
-        function ($carry, $rule) use ($group, $filters) {
-            $clause = ES\getClause($group, $rule);
-            $fragment = transformRule($group, $rule, $filters);
+    return array_reduce($rules, function ($carry, $rule) use (
+        $group,
+        $filters,
+        $options
+    ) {
+        $clause = ES\getClause($group, $rule);
+        $fragment = transformRule($group, $rule, $filters, $options);
 
-            $existingFragments = isset($carry[$clause]) ? $carry[$clause] : [];
+        $existingFragments = isset($carry[$clause]) ? $carry[$clause] : [];
 
-            return array_merge($carry, [
-                $clause => array_merge($existingFragments, [$fragment])
-            ]);
-        },
-        []
-    );
+        return array_merge($carry, [
+            $clause => array_merge($existingFragments, [$fragment])
+        ]);
+    }, []);
 }
 
-function transformRule($group, $rule, $filters)
+function transformRule($group, $rule, $filters, $options)
 {
     $condition = isset($group['condition']) ? $group['condition'] : '';
     $operator = isset($rule['operator']) ? $rule['operator'] : '';
     $rules = isset($rule['rules']) ? $rule['rules'] : [];
 
     if (count($rules) > 0) {
-        return transform($rule, $filters);
+        return transform($rule, $filters, $options);
     }
 
     $fragment = ES\getFragment($rule);

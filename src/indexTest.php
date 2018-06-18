@@ -225,6 +225,7 @@ final class IndexTest extends TestCase
                 $group,
                 $rules,
                 $filters,
+                $options,
                 $postFilterUserFuncName
             ) {
                 return [
@@ -235,7 +236,8 @@ final class IndexTest extends TestCase
                                 $postFilterUserFuncName,
                                 $group,
                                 $rules,
-                                $filters
+                                $filters,
+                                $options
                             )
                         ]
                     ]
