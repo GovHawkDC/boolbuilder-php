@@ -16,10 +16,10 @@ function transform($group, $filters = [])
         return [];
     }
 
-    $postFilterUserFuncName = __NAMESPACE__ . '\\transformGroupPostFilter';
-
     if (isset($filters[$QB])) {
         $userProvidedFilter = $filters[$QB];
+        $postFilterUserFuncName = __NAMESPACE__ . '\\transformGroupPostFilter';
+
         return [
             'bool' => $userProvidedFilter(
                 $group,
@@ -30,14 +30,7 @@ function transform($group, $filters = [])
         ];
     }
 
-    return [
-        'bool' => transformGroupDefaultFilter(
-            $group,
-            $rules,
-            $filters,
-            $postFilterUserFuncName
-        )
-    ];
+    return ['bool' => transformGroupPostFilter($group, $rules, $filters)];
 }
 
 function transformGroupPostFilter($group, $rules, $filters)
@@ -56,16 +49,6 @@ function transformGroupPostFilter($group, $rules, $filters)
         },
         []
     );
-}
-
-function transformGroupDefaultFilter(
-    $group,
-    $rules,
-    $filters,
-    $postFilterUserFuncName
-)
-{
-    return call_user_func($postFilterUserFuncName, $group, $rules, $filters);
 }
 
 function transformRule($group, $rule, $filters)
