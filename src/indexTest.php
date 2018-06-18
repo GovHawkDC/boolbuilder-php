@@ -19,7 +19,7 @@ final class IndexTest extends TestCase
             ]
         ];
 
-        $result = \Boolbuilder\transform($QBdata);
+        $result = Boolbuilder\transform($QBdata);
 
         $expected = ['bool' => ['must' => [['match' => ['name' => '123']]]]];
 
@@ -42,7 +42,7 @@ final class IndexTest extends TestCase
             ]
         ];
 
-        $result = \Boolbuilder\transform($QBdata);
+        $result = Boolbuilder\transform($QBdata);
 
         $expected = ['bool' => ['should' => [['match' => ['name' => '123']]]]];
 
@@ -86,7 +86,7 @@ final class IndexTest extends TestCase
             ]
         ];
 
-        $result = \Boolbuilder\transform($QBdata);
+        $result = Boolbuilder\transform($QBdata);
 
         $expected = [
             'bool' => [
@@ -111,7 +111,7 @@ final class IndexTest extends TestCase
     {
         $QBdata = [];
 
-        $result = \Boolbuilder\transform($QBdata);
+        $result = Boolbuilder\transform($QBdata);
 
         $expected = [];
 
@@ -155,7 +155,7 @@ final class IndexTest extends TestCase
             ]
         ];
 
-        $result = \Boolbuilder\transform($QBdata);
+        $result = Boolbuilder\transform($QBdata);
 
         $expected = [
             'bool' => [
@@ -245,7 +245,7 @@ final class IndexTest extends TestCase
             }
         ];
 
-        $result = \Boolbuilder\transform($QBdata, $filters);
+        $result = Boolbuilder\transform($QBdata, $filters);
 
         $expected = [
             'bool' => [
@@ -348,7 +348,7 @@ final class IndexTest extends TestCase
 
         $options = ['filterFields' => ['misc']];
 
-        $result = \Boolbuilder\transform($QBdata, $filters, $options);
+        $result = Boolbuilder\transform($QBdata, $filters, $options);
 
         $expected = [
             'bool' => [
