@@ -40,23 +40,20 @@ function transform($group, $filters = [])
 
 function transformGroupPostFilter($group, $rules, $filters)
 {
-    $clausesAndFragments = array_map(function ($rule) use ($group, $filters) {
-        return [
-            'clause' => \Boolbuilder\ES\getClause($group, $rule),
-            'fragment' => transformRule($group, $rule, $filters)
-        ];
-    }, $rules);
+    return array_reduce(
+        $rules,
+        function ($carry, $rule) use ($group, $filters) {
+            $clause = \Boolbuilder\ES\getClause($group, $rule);
+            $fragment = transformRule($group, $rule, $filters);
 
-    return array_reduce($clausesAndFragments, function ($carry, $data) {
-        $clause = $data['clause'];
-        $fragment = $data['fragment'];
+            $existingFragments = isset($carry[$clause]) ? $carry[$clause] : [];
 
-        $existingFragments = isset($carry[$clause]) ? $carry[$clause] : [];
-
-        return array_merge($carry, [
-            $clause => array_merge($existingFragments, [$fragment])
-        ]);
-    }, []);
+            return array_merge($carry, [
+                $clause => array_merge($existingFragments, [$fragment])
+            ]);
+        },
+        []
+    );
 }
 
 function transformGroupDefaultFilter(
