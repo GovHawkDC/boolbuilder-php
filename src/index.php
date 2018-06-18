@@ -29,8 +29,7 @@ function transform($group, $filters = [])
     }
 
     return [
-        'bool' => call_user_func(
-            __NAMESPACE__ . '\\transformGroupDefaultFilter',
+        'bool' => transformGroupDefaultFilter(
             $group,
             $rules,
             $filters,
