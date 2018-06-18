@@ -1,6 +1,8 @@
 <?php
 namespace Boolbuilder;
 
+use Boolbuilder\ES;
+
 function transform($group, $filters = [])
 {
     if (!$group) {
@@ -43,7 +45,7 @@ function transformGroupPostFilter($group, $rules, $filters)
     return array_reduce(
         $rules,
         function ($carry, $rule) use ($group, $filters) {
-            $clause = \Boolbuilder\ES\getClause($group, $rule);
+            $clause = ES\getClause($group, $rule);
             $fragment = transformRule($group, $rule, $filters);
 
             $existingFragments = isset($carry[$clause]) ? $carry[$clause] : [];
@@ -76,14 +78,11 @@ function transformRule($group, $rule, $filters)
         return transform($rule, $filters);
     }
 
-    $fragment = \Boolbuilder\ES\getFragment($rule);
+    $fragment = ES\getFragment($rule);
 
     // this is a corner case, when we have an "or" group and a negative operator,
     // we express this with a sub boolean query and must_not
-    if (
-        strtoupper($condition) === 'OR' &&
-        \Boolbuilder\ES\isNegativeOperator($operator)
-    ) {
+    if (strtoupper($condition) === 'OR' && ES\isNegativeOperator($operator)) {
 
         return ['bool' => ['must_not' => [$fragment]]];
     }
