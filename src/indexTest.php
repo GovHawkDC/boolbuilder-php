@@ -540,6 +540,7 @@ final class IndexTest extends TestCase
                     [
                         'bool' => [
                             'must' => [
+                                ['terms' => ['_type' => ['book']]],
                                 [
                                     'bool' => [
                                         'should' => [
