@@ -87,6 +87,13 @@ function transformRule($group, $rule, $filters, $options)
 function isRuleExcluded($rule, $options)
 {
     if (
+        isset($options['onlyFields']) &&
+        !in_array($rule['field'], $options['onlyFields'], true)
+    ) {
+        return true;
+    }
+
+    if (
         isset($options['filterFields']) &&
         in_array($rule['field'], $options['filterFields'], true)
     ) {
