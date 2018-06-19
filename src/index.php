@@ -68,16 +68,7 @@ function transformRule($group, $rule, $filters, $options)
         return transform($rule, $filters, $options);
     }
 
-    if (
-        (
-            isset($options['filterFields']) &&
-            in_array($rule['field'], $options['filterFields'], true)
-        ) ||
-        (
-            isset($options['filterOperators']) &&
-            in_array($rule['operator'], $options['filterOperators'], true)
-        )
-    ) {
+    if (isRuleExcluded($rule, $options)) {
         return null;
     }
 
@@ -91,4 +82,23 @@ function transformRule($group, $rule, $filters, $options)
     }
 
     return $fragment;
+}
+
+function isRuleExcluded($rule, $options)
+{
+    if (
+        isset($options['filterFields']) &&
+        in_array($rule['field'], $options['filterFields'], true)
+    ) {
+        return true;
+    }
+
+    if (
+        isset($options['filterOperators']) &&
+        in_array($rule['operator'], $options['filterOperators'], true)
+    ) {
+        return true;
+    }
+
+    return false;
 }
