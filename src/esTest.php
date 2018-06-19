@@ -1,31 +1,29 @@
 <?php
 use PHPUnit\Framework\TestCase;
+use Boolbuilder\ES;
 
 final class EsTest extends TestCase
 {
     public function testArrayArgToGetArrayValueIsSelf()
     {
-        $this->assertEquals(\Boolbuilder\ES\getArrayValue([1, 2]), [1, 2]);
+        $this->assertEquals(ES\getArrayValue([1, 2]), [1, 2]);
     }
 
     public function testStringArgToGetArrayValueIsArray()
     {
-        $this->assertEquals(\Boolbuilder\ES\getArrayValue('1, 2'), ['1', '2']);
+        $this->assertEquals(ES\getArrayValue('1, 2'), ['1', '2']);
     }
 
     public function testNonArrayStringArgToGetArrayValueThrows()
     {
         $this->expectException(\Exception::class);
-        \Boolbuilder\ES\getArrayValue(true);
+        ES\getArrayValue(true);
     }
 
     public function testIsNullOperatorArgToGetFragmentReturnsExists()
     {
         $this->assertEquals(
-            \Boolbuilder\ES\getFragment([
-                'field' => 'name',
-                'operator' => 'is_null'
-            ]),
+            ES\getFragment(['field' => 'name', 'operator' => 'is_null']),
             ['exists' => ['field' => 'name']]
         );
     }
@@ -33,7 +31,7 @@ final class EsTest extends TestCase
     public function testProximityOperatorArgToGetFragmentReturnsStandard()
     {
         $this->assertEquals(
-            \Boolbuilder\ES\getFragment([
+            ES\getFragment([
                 'field' => 'name',
                 'operator' => 'proximity',
                 'value' => ['a', '2']
@@ -45,25 +43,20 @@ final class EsTest extends TestCase
     public function testDefaultCondAndNegativeToGetClauseReturnsMustNot()
     {
         $this->assertEquals(
-            \Boolbuilder\ES\getClause([], ['operator' => 'not_equal']),
+            ES\getClause([], ['operator' => 'not_equal']),
             'must_not'
         );
     }
 
     public function testDefaultCondAndNonNegativeToGetClauseReturnsMust()
     {
-        $this->assertEquals(
-            \Boolbuilder\ES\getClause([], ['operator' => 'equal']),
-            'must'
-        );
+        $this->assertEquals(ES\getClause([], ['operator' => 'equal']), 'must');
     }
 
     public function testOrCondAndAnythingToGetClauseReturnsMust()
     {
         $this->assertEquals(
-            \Boolbuilder\ES\getClause(['condition' => 'OR'], [
-                'operator' => 'not_equal'
-            ]),
+            ES\getClause(['condition' => 'OR'], ['operator' => 'not_equal']),
             'should'
         );
     }
@@ -71,23 +64,18 @@ final class EsTest extends TestCase
     public function testUnhandledCondToGetClauseThrows()
     {
         $this->expectException(\Exception::class);
-        \Boolbuilder\ES\getClause(['condition' => 'xor'], [
-            'operator' => 'not_equal'
-        ]);
+        ES\getClause(['condition' => 'xor'], ['operator' => 'not_equal']);
     }
 
     public function testWildcardSplatCharToGetOperatorIsWildcard()
     {
-        $this->assertEquals(
-            \Boolbuilder\ES\getOperator(['value' => 'hello*']),
-            'wildcard'
-        );
+        $this->assertEquals(ES\getOperator(['value' => 'hello*']), 'wildcard');
     }
 
     public function testWildcardQuestionCharToGetOperatorIsWildcard()
     {
         $this->assertEquals(
-            \Boolbuilder\ES\getOperator(['value' => 'hello world?']),
+            ES\getOperator(['value' => 'hello world?']),
             'wildcard'
         );
     }
@@ -95,10 +83,7 @@ final class EsTest extends TestCase
     public function testContainsToGetOperatorIsMatch()
     {
         $this->assertEquals(
-            \Boolbuilder\ES\getOperator([
-                'operator' => 'contains',
-                'value' => ''
-            ]),
+            ES\getOperator(['operator' => 'contains', 'value' => '']),
             'match'
         );
     }
@@ -106,10 +91,7 @@ final class EsTest extends TestCase
     public function testUnknownToGetOperatorIsRange()
     {
         $this->assertEquals(
-            \Boolbuilder\ES\getOperator([
-                'operator' => '>>>',
-                'value' => 'hello world'
-            ]),
+            ES\getOperator(['operator' => '>>>', 'value' => 'hello world']),
             'range'
         );
     }
@@ -117,8 +99,8 @@ final class EsTest extends TestCase
     public function testBetweenToGetValueIsGteLteArray()
     {
         $rule = ['operator' => 'between', 'value' => ['1', '2']];
-        $operator = \Boolbuilder\ES\getOperator($rule);
-        $this->assertEquals(\Boolbuilder\ES\getValue($rule, $operator), [
+        $operator = ES\getOperator($rule);
+        $this->assertEquals(ES\getValue($rule, $operator), [
             'gte' => '1',
             'lte' => '2'
         ]);
@@ -128,23 +110,17 @@ final class EsTest extends TestCase
     {
         $this->expectException(\Exception::class);
         $rule = ['operator' => '<>', 'value' => ['1', '2']];
-        $operator = \Boolbuilder\ES\getOperator($rule);
-        \Boolbuilder\ES\getValue($rule, $operator);
+        $operator = ES\getOperator($rule);
+        ES\getValue($rule, $operator);
     }
 
     public function testIsNullToIsNegativeOperatorIsTrue()
     {
-        $this->assertEquals(
-            \Boolbuilder\ES\isNegativeOperator('is_null'),
-            true
-        );
+        $this->assertEquals(ES\isNegativeOperator('is_null'), true);
     }
 
     public function testGreaterToIsNegativeOperatorIsFalse()
     {
-        $this->assertEquals(
-            \Boolbuilder\ES\isNegativeOperator('greater'),
-            false
-        );
+        $this->assertEquals(ES\isNegativeOperator('greater'), false);
     }
 }

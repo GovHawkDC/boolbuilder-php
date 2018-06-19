@@ -19,7 +19,7 @@ final class IndexTest extends TestCase
             ]
         ];
 
-        $result = \Boolbuilder\transform($QBdata);
+        $result = Boolbuilder\transform($QBdata);
 
         $expected = ['bool' => ['must' => [['match' => ['name' => '123']]]]];
 
@@ -42,7 +42,7 @@ final class IndexTest extends TestCase
             ]
         ];
 
-        $result = \Boolbuilder\transform($QBdata);
+        $result = Boolbuilder\transform($QBdata);
 
         $expected = ['bool' => ['should' => [['match' => ['name' => '123']]]]];
 
@@ -86,7 +86,7 @@ final class IndexTest extends TestCase
             ]
         ];
 
-        $result = \Boolbuilder\transform($QBdata);
+        $result = Boolbuilder\transform($QBdata);
 
         $expected = [
             'bool' => [
@@ -111,7 +111,7 @@ final class IndexTest extends TestCase
     {
         $QBdata = [];
 
-        $result = \Boolbuilder\transform($QBdata);
+        $result = Boolbuilder\transform($QBdata);
 
         $expected = [];
 
@@ -155,7 +155,7 @@ final class IndexTest extends TestCase
             ]
         ];
 
-        $result = \Boolbuilder\transform($QBdata);
+        $result = Boolbuilder\transform($QBdata);
 
         $expected = [
             'bool' => [
@@ -225,6 +225,7 @@ final class IndexTest extends TestCase
                 $group,
                 $rules,
                 $filters,
+                $options,
                 $postFilterUserFuncName
             ) {
                 return [
@@ -235,7 +236,8 @@ final class IndexTest extends TestCase
                                 $postFilterUserFuncName,
                                 $group,
                                 $rules,
-                                $filters
+                                $filters,
+                                $options
                             )
                         ]
                     ]
@@ -243,7 +245,7 @@ final class IndexTest extends TestCase
             }
         ];
 
-        $result = \Boolbuilder\transform($QBdata, $filters);
+        $result = Boolbuilder\transform($QBdata, $filters);
 
         $expected = [
             'bool' => [
@@ -268,6 +270,291 @@ final class IndexTest extends TestCase
                                                 ]
                                             ],
                                             ['terms' => ['type' => ['book']]]
+                                        ]
+                                    ]
+                                ]
+                            ]
+                        ]
+                    ]
+                ]
+            ]
+        ];
+
+        $this->assertEquals($result, $expected);
+    }
+
+    public function testQBData6()
+    {
+        $QBdata = [
+            'condition' => 'AND',
+            'rules' => [
+                [
+                    'id' => 'name',
+                    'field' => 'name',
+                    'type' => 'string',
+                    'input' => 'text',
+                    'operator' => 'contains',
+                    'value' => '123'
+                ],
+                [
+                    'QB' => 'book',
+                    'condition' => 'or',
+                    'rules' => [
+                        [
+                            'id' => 'misc',
+                            'field' => 'misc',
+                            'type' => 'string',
+                            'input' => 'text',
+                            'operator' => 'is_null',
+                            'value' => null
+                        ],
+                        [
+                            'id' => 'type',
+                            'field' => 'type',
+                            'type' => 'string',
+                            'input' => 'checkbox',
+                            'operator' => 'in',
+                            'value' => ['book']
+                        ]
+                    ]
+                ]
+            ]
+        ];
+
+        $filters = [
+            'book' => function (
+                $group,
+                $rules,
+                $filters,
+                $options,
+                $postFilterUserFuncName
+            ) {
+                return [
+                    'must' => [
+                        ['terms' => ['_type' => ['book']]],
+                        [
+                            'bool' => call_user_func(
+                                $postFilterUserFuncName,
+                                $group,
+                                $rules,
+                                $filters,
+                                $options
+                            )
+                        ]
+                    ]
+                ];
+            }
+        ];
+
+        $options = ['filterFields' => ['misc']];
+
+        $result = Boolbuilder\transform($QBdata, $filters, $options);
+
+        $expected = [
+            'bool' => [
+                'must' => [
+                    ['match' => ['name' => '123']],
+                    [
+                        'bool' => [
+                            'must' => [
+                                ['terms' => ['_type' => ['book']]],
+                                [
+                                    'bool' => [
+                                        'should' => [
+                                            ['terms' => ['type' => ['book']]]
+                                        ]
+                                    ]
+                                ]
+                            ]
+                        ]
+                    ]
+                ]
+            ]
+        ];
+
+        $this->assertEquals($result, $expected);
+    }
+
+    public function testQBData7()
+    {
+        $QBdata = [
+            'condition' => 'AND',
+            'rules' => [
+                [
+                    'id' => 'name',
+                    'field' => 'name',
+                    'type' => 'string',
+                    'input' => 'text',
+                    'operator' => 'contains',
+                    'value' => '123'
+                ],
+                [
+                    'QB' => 'book',
+                    'condition' => 'or',
+                    'rules' => [
+                        [
+                            'id' => 'misc',
+                            'field' => 'misc',
+                            'type' => 'string',
+                            'input' => 'text',
+                            'operator' => 'is_null',
+                            'value' => null
+                        ],
+                        [
+                            'id' => 'type',
+                            'field' => 'type',
+                            'type' => 'string',
+                            'input' => 'checkbox',
+                            'operator' => 'in',
+                            'value' => ['book']
+                        ]
+                    ]
+                ]
+            ]
+        ];
+
+        $filters = [
+            'book' => function (
+                $group,
+                $rules,
+                $filters,
+                $options,
+                $postFilterUserFuncName
+            ) {
+                return [
+                    'must' => [
+                        ['terms' => ['_type' => ['book']]],
+                        [
+                            'bool' => call_user_func(
+                                $postFilterUserFuncName,
+                                $group,
+                                $rules,
+                                $filters,
+                                $options
+                            )
+                        ]
+                    ]
+                ];
+            }
+        ];
+
+        $options = ['filterOperators' => ['is_not_null', 'is_null']];
+
+        $result = Boolbuilder\transform($QBdata, $filters, $options);
+
+        $expected = [
+            'bool' => [
+                'must' => [
+                    ['match' => ['name' => '123']],
+                    [
+                        'bool' => [
+                            'must' => [
+                                ['terms' => ['_type' => ['book']]],
+                                [
+                                    'bool' => [
+                                        'should' => [
+                                            ['terms' => ['type' => ['book']]]
+                                        ]
+                                    ]
+                                ]
+                            ]
+                        ]
+                    ]
+                ]
+            ]
+        ];
+
+        $this->assertEquals($result, $expected);
+    }
+
+    public function testQBData8()
+    {
+        $QBdata = [
+            'condition' => 'AND',
+            'rules' => [
+                [
+                    'id' => 'name',
+                    'field' => 'name',
+                    'type' => 'string',
+                    'input' => 'text',
+                    'operator' => 'contains',
+                    'value' => '123'
+                ],
+                [
+                    'QB' => 'book',
+                    'condition' => 'or',
+                    'rules' => [
+                        [
+                            'id' => 'misc',
+                            'field' => 'misc',
+                            'type' => 'string',
+                            'input' => 'text',
+                            'operator' => 'is_null',
+                            'value' => null
+                        ],
+                        [
+                            'id' => 'type',
+                            'field' => 'type',
+                            'type' => 'string',
+                            'input' => 'checkbox',
+                            'operator' => 'in',
+                            'value' => ['book']
+                        ]
+                    ]
+                ]
+            ]
+        ];
+
+        $filters = [
+            'book' => function (
+                $group,
+                $rules,
+                $filters,
+                $options,
+                $postFilterUserFuncName
+            ) {
+                return [
+                    'must' => [
+                        ['terms' => ['_type' => ['book']]],
+                        [
+                            'bool' => call_user_func(
+                                $postFilterUserFuncName,
+                                $group,
+                                $rules,
+                                $filters,
+                                $options
+                            )
+                        ]
+                    ]
+                ];
+            }
+        ];
+
+        $options = ['onlyFields' => ['misc']];
+
+        $result = Boolbuilder\transform($QBdata, $filters, $options);
+
+        $expected = [
+            'bool' => [
+                'must' => [
+                    [
+                        'bool' => [
+                            'must' => [
+                                ['terms' => ['_type' => ['book']]],
+                                [
+                                    'bool' => [
+                                        'should' => [
+                                            [
+                                                'bool' => [
+                                                    'must_not' => [
+                                                        [
+                                                            'exists' => [
+                                                                'field' => 'misc'
+                                                            ]
+                                                        ]
+                                                    ]
+                                                ]
+                                            ]
                                         ]
                                     ]
                                 ]

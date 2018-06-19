@@ -1,7 +1,9 @@
 <?php
 namespace Boolbuilder;
 
-function transform($group, $filters = [])
+use Boolbuilder\ES;
+
+function transform($group, $filters = [], $options = [])
 {
     if (!$group) {
         return [];
@@ -14,43 +16,39 @@ function transform($group, $filters = [])
         return [];
     }
 
-    $postFilterUserFuncName = __NAMESPACE__ . '\\transformGroupPostFilter';
-
     if (isset($filters[$QB])) {
         $userProvidedFilter = $filters[$QB];
+        $postFilterUserFuncName = __NAMESPACE__ . '\\transformGroupPostFilter';
+
         return [
             'bool' => $userProvidedFilter(
                 $group,
                 $rules,
                 $filters,
+                $options,
                 $postFilterUserFuncName
             )
         ];
     }
 
     return [
-        'bool' => call_user_func(
-            __NAMESPACE__ . '\\transformGroupDefaultFilter',
-            $group,
-            $rules,
-            $filters,
-            $postFilterUserFuncName
-        )
+        'bool' => transformGroupPostFilter($group, $rules, $filters, $options)
     ];
 }
 
-function transformGroupPostFilter($group, $rules, $filters)
+function transformGroupPostFilter($group, $rules, $filters, $options)
 {
-    $clausesAndFragments = array_map(function ($rule) use ($group, $filters) {
-        return [
-            'clause' => \Boolbuilder\ES\getClause($group, $rule),
-            'fragment' => transformRule($group, $rule, $filters)
-        ];
-    }, $rules);
+    return array_reduce($rules, function ($carry, $rule) use (
+        $group,
+        $filters,
+        $options
+    ) {
+        $clause = ES\getClause($group, $rule);
+        $fragment = transformRule($group, $rule, $filters, $options);
 
-    return array_reduce($clausesAndFragments, function ($carry, $data) {
-        $clause = $data['clause'];
-        $fragment = $data['fragment'];
+        if ($fragment === null) {
+            return $carry;
+        }
 
         $existingFragments = isset($carry[$clause]) ? $carry[$clause] : [];
 
@@ -60,37 +58,54 @@ function transformGroupPostFilter($group, $rules, $filters)
     }, []);
 }
 
-function transformGroupDefaultFilter(
-    $group,
-    $rules,
-    $filters,
-    $postFilterUserFuncName
-)
-{
-    return call_user_func($postFilterUserFuncName, $group, $rules, $filters);
-}
-
-function transformRule($group, $rule, $filters)
+function transformRule($group, $rule, $filters, $options)
 {
     $condition = isset($group['condition']) ? $group['condition'] : '';
     $operator = isset($rule['operator']) ? $rule['operator'] : '';
     $rules = isset($rule['rules']) ? $rule['rules'] : [];
 
     if (count($rules) > 0) {
-        return call_user_func(__NAMESPACE__ . '\\transform', $rule, $filters);
+        return transform($rule, $filters, $options);
     }
 
-    $fragment = \Boolbuilder\ES\getFragment($rule);
+    if (isRuleExcluded($rule, $options)) {
+        return null;
+    }
+
+    $fragment = ES\getFragment($rule);
 
     // this is a corner case, when we have an "or" group and a negative operator,
     // we express this with a sub boolean query and must_not
-    if (
-        strtoupper($condition) === 'OR' &&
-        \Boolbuilder\ES\isNegativeOperator($operator)
-    ) {
+    if (strtoupper($condition) === 'OR' && ES\isNegativeOperator($operator)) {
 
         return ['bool' => ['must_not' => [$fragment]]];
     }
 
     return $fragment;
+}
+
+function isRuleExcluded($rule, $options)
+{
+    if (
+        isset($options['onlyFields']) &&
+        !in_array($rule['field'], $options['onlyFields'], true)
+    ) {
+        return true;
+    }
+
+    if (
+        isset($options['filterFields']) &&
+        in_array($rule['field'], $options['filterFields'], true)
+    ) {
+        return true;
+    }
+
+    if (
+        isset($options['filterOperators']) &&
+        in_array($rule['operator'], $options['filterOperators'], true)
+    ) {
+        return true;
+    }
+
+    return false;
 }
