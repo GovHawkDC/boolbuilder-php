@@ -567,4 +567,70 @@ final class IndexTest extends TestCase
 
         $this->assertEquals($result, $expected);
     }
+
+    public function testQBData9()
+    {
+        $QBdata = [
+            'condition' => 'OR',
+            'rules' => [
+                [
+                    'QB' => 'book',
+                    'condition' => 'or',
+                    'rules' => [
+                        [
+                            'id' => 'misc',
+                            'field' => 'misc',
+                            'type' => 'string',
+                            'input' => 'text',
+                            'operator' => 'is_null',
+                            'value' => null
+                        ]
+                    ]
+                ],
+                [
+                    'QB' => 'book',
+                    'condition' => 'AND',
+                    'rules' => [
+                        [
+                            'QB' => 'QBRule',
+                            'field' => 'state',
+                            'id' => 'state',
+                            'input' => 'checkbox',
+                            'operator' => 'in',
+                            'type' => 'string',
+                            'value' => ['me', 'nv', 'mi', 'ri', 'md']
+                        ]
+                    ]
+                ]
+            ]
+        ];
+
+        $filters = [];
+
+        $options = ['filterFields' => ['state']];
+
+        $result = Boolbuilder\transform($QBdata, $filters, $options);
+
+        $expected = [
+            'bool' => [
+                'should' => [
+                    [
+                        'bool' => [
+                            'should' => [
+                                [
+                                    'bool' => [
+                                        'must_not' => [
+                                            ['exists' => ['field' => 'misc']]
+                                        ]
+                                    ]
+                                ]
+                            ]
+                        ]
+                    ]
+                ]
+            ]
+        ];
+
+        $this->assertEquals($result, $expected);
+    }
 }
