@@ -16,24 +16,17 @@ function transform($group, $filters = [], $options = [])
         return [];
     }
 
-    if (isset($filters[$QB])) {
-        $userProvidedFilter = $filters[$QB];
-        $postFilterUserFuncName = __NAMESPACE__ . '\\transformGroupPostFilter';
+    $t = isset($filters[$QB])
+        ? $filters[$QB](
+            $group,
+            $rules,
+            $filters,
+            $options,
+            __NAMESPACE__ . '\\transformGroupPostFilter'
+        )
+        : transformGroupPostFilter($group, $rules, $filters, $options);
 
-        return [
-            'bool' => $userProvidedFilter(
-                $group,
-                $rules,
-                $filters,
-                $options,
-                $postFilterUserFuncName
-            )
-        ];
-    }
-
-    return [
-        'bool' => transformGroupPostFilter($group, $rules, $filters, $options)
-    ];
+    return empty($t) ? [] : ['bool' => $t];
 }
 
 function transformGroupPostFilter($group, $rules, $filters, $options)
