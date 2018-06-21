@@ -39,7 +39,7 @@ function transformGroupPostFilter($group, $rules, $filters, $options)
         $clause = ES\getClause($group, $rule);
         $fragment = transformRule($group, $rule, $filters, $options);
 
-        if ($fragment === null) {
+        if (empty($fragment)) {
             return $carry;
         }
 
@@ -62,7 +62,7 @@ function transformRule($group, $rule, $filters, $options)
     }
 
     if (isRuleExcluded($rule, $options)) {
-        return null;
+        return [];
     }
 
     $fragment = ES\getFragment($rule);
