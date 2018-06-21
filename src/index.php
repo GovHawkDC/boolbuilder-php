@@ -17,23 +17,24 @@ function transform($group, $filters = [], $options = [])
     }
 
     if (isset($filters[$QB])) {
-        $userProvidedFilter = $filters[$QB];
-        $postFilterUserFuncName = __NAMESPACE__ . '\\transformGroupPostFilter';
+        $userFunc = $filters[$QB];
+        $postFilter = __NAMESPACE__ . '\\transformGroupPostFilter';
+        $t = $userFunc($group, $rules, $filters, $options, $postFilter);
 
-        return [
-            'bool' => $userProvidedFilter(
-                $group,
-                $rules,
-                $filters,
-                $options,
-                $postFilterUserFuncName
-            )
-        ];
+        if (empty($t)) {
+            return [];
+        }
+
+        return ['bool' => $t];
     }
 
-    return [
-        'bool' => transformGroupPostFilter($group, $rules, $filters, $options)
-    ];
+    $t = transformGroupPostFilter($group, $rules, $filters, $options);
+
+    if (empty($t)) {
+        return [];
+    }
+
+    return ['bool' => $t];
 }
 
 function transformGroupPostFilter($group, $rules, $filters, $options)
@@ -46,7 +47,7 @@ function transformGroupPostFilter($group, $rules, $filters, $options)
         $clause = ES\getClause($group, $rule);
         $fragment = transformRule($group, $rule, $filters, $options);
 
-        if ($fragment === null) {
+        if (empty($fragment)) {
             return $carry;
         }
 
@@ -69,7 +70,7 @@ function transformRule($group, $rule, $filters, $options)
     }
 
     if (isRuleExcluded($rule, $options)) {
-        return null;
+        return [];
     }
 
     $fragment = ES\getFragment($rule);
