@@ -1,5 +1,5 @@
 <?php
-namespace Boolbuilder\ES;
+namespace GovHawkDC\Boolbuilder\ES;
 
 function getArrayValue($value)
 {

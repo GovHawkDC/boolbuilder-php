@@ -1,5 +1,5 @@
 <?php
-namespace Boolbuilder;
+namespace GovHawkDC\Boolbuilder;
 
 use Boolbuilder\ES;
 
