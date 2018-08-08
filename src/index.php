@@ -1,7 +1,7 @@
 <?php
 namespace GovHawkDC\Boolbuilder;
 
-use Boolbuilder\ES;
+use GovHawkDC\Boolbuilder\ES;
 
 function transform($group, $filters = [], $options = [])
 {

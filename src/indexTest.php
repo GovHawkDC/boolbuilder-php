@@ -1,5 +1,6 @@
 <?php
 use PHPUnit\Framework\TestCase;
+use GovHawkDC\Boolbuilder;
 
 final class IndexTest extends TestCase
 {

@@ -1,6 +1,6 @@
 <?php
 use PHPUnit\Framework\TestCase;
-use Boolbuilder\ES;
+use GovHawkDC\Boolbuilder\ES;
 
 final class EsTest extends TestCase
 {
