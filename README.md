@@ -10,14 +10,14 @@ Query-Builder data, into an Elasticsearch bool query.
 **Note:** `npm` should be fine as well.
 
 ```shell
-yarn install
+yarn install # OR... npm install
 composer install
 ```
 
 ### tests
 
 ```shell
-yarn test
+yarn test # OR... npm test
 
 # OR... yarn/npm is just less typing...
 
