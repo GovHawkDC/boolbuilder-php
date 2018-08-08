@@ -1,5 +1,5 @@
 {
-  "name": "doubleswirve/boolbuilder-php",
+  "name": "govhawkdc/boolbuilder-php",
   "type": "library",
   "description":
     "querybuilder-like object to elasticsearch bool query object parser/transformer, for php",
