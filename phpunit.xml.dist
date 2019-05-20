@@ -2,7 +2,7 @@
 <phpunit bootstrap="./vendor/autoload.php">
   <testsuites>
     <testsuite name="boolbuilder-php test suite">
-      <directory>./src</directory>
+      <directory suffix=".spec.php">./src</directory>
     </testsuite>
   </testsuites>
 </phpunit>
