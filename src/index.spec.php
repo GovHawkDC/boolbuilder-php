@@ -221,32 +221,26 @@ final class IndexTest extends TestCase
             ]
         ];
 
-        $filters = [
+        $options = [];
+        $options['typeFilters'] = [
             'book' => function (
                 $group,
                 $rules,
-                $filters,
                 $options,
-                $postFilterUserFuncName
+                $nextFunc
             ) {
                 return [
                     'must' => [
                         ['terms' => ['_type' => ['book']]],
                         [
-                            'bool' => call_user_func(
-                                $postFilterUserFuncName,
-                                $group,
-                                $rules,
-                                $filters,
-                                $options
-                            )
+                            'bool' => $nextFunc($group, $rules, $options)
                         ]
                     ]
                 ];
             }
         ];
 
-        $result = Boolbuilder\transform($QBdata, $filters);
+        $result = Boolbuilder\transform($QBdata, $options);
 
         $expected = [
             'bool' => [
@@ -322,23 +316,21 @@ final class IndexTest extends TestCase
             ]
         ];
 
-        $filters = [
+        $options = [];
+        $options['typeFilters'] = [
             'book' => function (
                 $group,
                 $rules,
-                $filters,
                 $options,
-                $postFilterUserFuncName
+                $nextFunc
             ) {
                 return [
                     'must' => [
                         ['terms' => ['_type' => ['book']]],
                         [
-                            'bool' => call_user_func(
-                                $postFilterUserFuncName,
+                            'bool' => $nextFunc(
                                 $group,
                                 $rules,
-                                $filters,
                                 $options
                             )
                         ]
@@ -346,10 +338,9 @@ final class IndexTest extends TestCase
                 ];
             }
         ];
+        $options['excludeFields'] = ['misc'];
 
-        $options = ['filterFields' => ['misc']];
-
-        $result = Boolbuilder\transform($QBdata, $filters, $options);
+        $result = Boolbuilder\transform($QBdata, $options);
 
         $expected = [
             'bool' => [
@@ -414,23 +405,21 @@ final class IndexTest extends TestCase
             ]
         ];
 
-        $filters = [
+        $options = [];
+        $options['typeFilters'] = [
             'book' => function (
                 $group,
                 $rules,
-                $filters,
                 $options,
-                $postFilterUserFuncName
+                $nextFunc
             ) {
                 return [
                     'must' => [
                         ['terms' => ['_type' => ['book']]],
                         [
-                            'bool' => call_user_func(
-                                $postFilterUserFuncName,
+                            'bool' => $nextFunc(
                                 $group,
                                 $rules,
-                                $filters,
                                 $options
                             )
                         ]
@@ -438,10 +427,9 @@ final class IndexTest extends TestCase
                 ];
             }
         ];
+        $options['excludeOperators'] = ['is_not_null', 'is_null'];
 
-        $options = ['filterOperators' => ['is_not_null', 'is_null']];
-
-        $result = Boolbuilder\transform($QBdata, $filters, $options);
+        $result = Boolbuilder\transform($QBdata, $options);
 
         $expected = [
             'bool' => [
@@ -506,23 +494,21 @@ final class IndexTest extends TestCase
             ]
         ];
 
-        $filters = [
+        $options = [];
+        $options['typeFilters'] = [
             'book' => function (
                 $group,
                 $rules,
-                $filters,
                 $options,
-                $postFilterUserFuncName
+                $nextFunc
             ) {
                 return [
                     'must' => [
                         ['terms' => ['_type' => ['book']]],
                         [
-                            'bool' => call_user_func(
-                                $postFilterUserFuncName,
+                            'bool' => $nextFunc(
                                 $group,
                                 $rules,
-                                $filters,
                                 $options
                             )
                         ]
@@ -530,10 +516,9 @@ final class IndexTest extends TestCase
                 ];
             }
         ];
+        $options['includeFields'] = ['misc'];
 
-        $options = ['onlyFields' => ['misc']];
-
-        $result = Boolbuilder\transform($QBdata, $filters, $options);
+        $result = Boolbuilder\transform($QBdata, $options);
 
         $expected = [
             'bool' => [
@@ -606,11 +591,10 @@ final class IndexTest extends TestCase
             ]
         ];
 
-        $filters = [];
+        $options = [];
+        $options['excludeFields'] = ['state'];
 
-        $options = ['filterFields' => ['state']];
-
-        $result = Boolbuilder\transform($QBdata, $filters, $options);
+        $result = Boolbuilder\transform($QBdata, $options);
 
         $expected = [
             'bool' => [
