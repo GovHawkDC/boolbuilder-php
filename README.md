@@ -7,19 +7,17 @@ Query-Builder data, into an Elasticsearch bool query.
 
 ### install deps
 
-**Note:** `npm` should be fine as well.
-
 ```shell
-yarn install # OR... npm install
+npm install
 composer install
 ```
 
 ### tests
 
 ```shell
-yarn test # OR... npm test
+npm test
 
-# OR... yarn/npm is just less typing...
+# OR... (npm is just less typing)...
 
 composer run-script test
 ```
