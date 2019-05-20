@@ -3,7 +3,7 @@ namespace GovHawkDC\Boolbuilder;
 
 use GovHawkDC\Boolbuilder\ES;
 
-function transform($group, $filters = [], $options = [])
+function transform($group, $options = [])
 {
     if (!$group) {
         return [];
@@ -16,10 +16,11 @@ function transform($group, $filters = [], $options = [])
         return [];
     }
 
-    if (isset($filters[$QB])) {
-        $userFunc = $filters[$QB];
-        $postFilter = __NAMESPACE__ . '\\transformGroupPostFilter';
-        $t = $userFunc($group, $rules, $filters, $options, $postFilter);
+    if (isset($options['typeFilters'][$QB])) {
+        $userFunc = $options['typeFilters'][$QB];
+        $nextFunc = __NAMESPACE__ . '\\transformGroupPostFilter';
+
+        $t = $userFunc($group, $rules, $options, $nextFunc);
 
         if (empty($t)) {
             return [];
@@ -28,7 +29,7 @@ function transform($group, $filters = [], $options = [])
         return ['bool' => $t];
     }
 
-    $t = transformGroupPostFilter($group, $rules, $filters, $options);
+    $t = transformGroupPostFilter($group, $rules, $options);
 
     if (empty($t)) {
         return [];
@@ -37,15 +38,14 @@ function transform($group, $filters = [], $options = [])
     return ['bool' => $t];
 }
 
-function transformGroupPostFilter($group, $rules, $filters, $options)
+function transformGroupPostFilter($group, $rules, $options)
 {
     return array_reduce($rules, function ($carry, $rule) use (
         $group,
-        $filters,
         $options
     ) {
         $clause = ES\getClause($group, $rule);
-        $fragment = transformRule($group, $rule, $filters, $options);
+        $fragment = transformRule($group, $rule, $options);
 
         if (empty($fragment)) {
             return $carry;
@@ -59,14 +59,14 @@ function transformGroupPostFilter($group, $rules, $filters, $options)
     }, []);
 }
 
-function transformRule($group, $rule, $filters, $options)
+function transformRule($group, $rule, $options)
 {
     $condition = isset($group['condition']) ? $group['condition'] : '';
     $operator = isset($rule['operator']) ? $rule['operator'] : '';
     $rules = isset($rule['rules']) ? $rule['rules'] : [];
 
     if (count($rules) > 0) {
-        return transform($rule, $filters, $options);
+        return transform($rule, $options);
     }
 
     if (isRuleExcluded($rule, $options)) {
@@ -88,22 +88,22 @@ function transformRule($group, $rule, $filters, $options)
 function isRuleExcluded($rule, $options)
 {
     if (
-        isset($options['onlyFields']) &&
-        !in_array($rule['field'], $options['onlyFields'], true)
+        isset($options['includeFields']) &&
+        !in_array($rule['field'], $options['includeFields'], true)
     ) {
         return true;
     }
 
     if (
-        isset($options['filterFields']) &&
-        in_array($rule['field'], $options['filterFields'], true)
+        isset($options['excludeFields']) &&
+        in_array($rule['field'], $options['excludeFields'], true)
     ) {
         return true;
     }
 
     if (
-        isset($options['filterOperators']) &&
-        in_array($rule['operator'], $options['filterOperators'], true)
+        isset($options['excludeOperators']) &&
+        in_array($rule['operator'], $options['excludeOperators'], true)
     ) {
         return true;
     }
