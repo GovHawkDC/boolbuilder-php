@@ -40,23 +40,26 @@ function transform($group, $options = [])
 
 function transformGroupPostFilter($group, $rules, $options)
 {
-    return array_reduce($rules, function ($carry, $rule) use (
-        $group,
-        $options
-    ) {
-        $clause = ES\getClause($group, $rule);
-        $fragment = transformRule($group, $rule, $options);
+    return array_reduce(
+        $rules,
+        function ($carry, $rule) use ($group, $options) {
+            $clause = ES\getClause($group, $rule);
+            $fragment = transformRule($group, $rule, $options);
 
-        if (empty($fragment)) {
-            return $carry;
-        }
+            if (empty($fragment)) {
+                return $carry;
+            }
 
-        $existingFragments = isset($carry[$clause]) ? $carry[$clause] : [];
+            $existingFragments = isset($carry[$clause])
+                ? $carry[$clause]
+                : [];
 
-        return array_merge($carry, [
-            $clause => array_merge($existingFragments, [$fragment])
-        ]);
-    }, []);
+            return array_merge($carry, [
+                $clause => array_merge($existingFragments, [$fragment])
+            ]);
+        },
+        []
+    );
 }
 
 function transformRule($group, $rule, $options)
@@ -75,10 +78,11 @@ function transformRule($group, $rule, $options)
 
     $fragment = ES\getFragment($rule);
 
-    // this is a corner case, when we have an "or" group and a negative operator,
-    // we express this with a sub boolean query and must_not
-    if (strtoupper($condition) === 'OR' && ES\isNegativeOperator($operator)) {
-
+    // this is a corner case, when we have an "or" group and a
+    // negative operator, we express this with a sub boolean
+    // query and must_not
+    if (strtoupper($condition) === 'OR' &&
+        ES\isNegativeOperator($operator)) {
         return ['bool' => ['must_not' => [$fragment]]];
     }
 
@@ -87,24 +91,18 @@ function transformRule($group, $rule, $options)
 
 function isRuleExcluded($rule, $options)
 {
-    if (
-        isset($options['includeFields']) &&
-        !in_array($rule['field'], $options['includeFields'], true)
-    ) {
+    if (isset($options['includeFields']) &&
+        !in_array($rule['field'], $options['includeFields'], true)) {
         return true;
     }
 
-    if (
-        isset($options['excludeFields']) &&
-        in_array($rule['field'], $options['excludeFields'], true)
-    ) {
+    if (isset($options['excludeFields']) &&
+        in_array($rule['field'], $options['excludeFields'], true)) {
         return true;
     }
 
-    if (
-        isset($options['excludeOperators']) &&
-        in_array($rule['operator'], $options['excludeOperators'], true)
-    ) {
+    if (isset($options['excludeOperators']) &&
+        in_array($rule['operator'], $options['excludeOperators'], true)) {
         return true;
     }
 
