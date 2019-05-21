@@ -8,16 +8,11 @@ Query-Builder data, into an Elasticsearch bool query.
 ### install deps
 
 ```shell
-npm install
 composer install
 ```
 
 ### tests
 
 ```shell
-npm test
-
-# OR... (npm is just less typing)...
-
 composer run-script test
 ```
