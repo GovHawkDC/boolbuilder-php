@@ -76,7 +76,12 @@ function transformRule($group, $rule, $options)
         return [];
     }
 
-    $fragment = ES\getFragment($rule);
+    if (isset($options['ruleFiltersPre'][$rule['field']])) {
+        $userFunc = $options['ruleFiltersPre'][$rule['field']];
+        $fragment = ES\getFragment($userFunc($rule));
+    } else {
+        $fragment = ES\getFragment($rule);
+    }
 
     // this is a corner case, when we have an "or" group and a
     // negative operator, we express this with a sub boolean
