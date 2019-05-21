@@ -620,4 +620,63 @@ final class IndexTest extends TestCase
 
         $this->assertEquals($result, $expected);
     }
+
+    public function testruleFiltersPreOption()
+    {
+        $data = [
+            'condition' => 'OR',
+            'rules' => [
+                [
+                    'QB' => 'book',
+                    'condition' => 'or',
+                    'rules' => [
+                        [
+                            'id' => 'misc',
+                            'field' => 'misc',
+                            'type' => 'string',
+                            'input' => 'text',
+                            'operator' => 'is_null',
+                            'value' => null
+                        ]
+                    ]
+                ]
+            ]
+        ];
+
+        $options = [];
+        $options['ruleFiltersPre'] = [
+            'misc' => function ($rule) {
+                $field = $rule['field'];
+
+                return array_merge($rule, [
+                    'id' => "{$field}.subfield",
+                    'field' => "{$field}.subfield"
+                ]);
+            }
+        ];
+
+        $result = Boolbuilder\transform($data, $options);
+
+        $expected = [
+            'bool' => [
+                'should' => [
+                    [
+                        'bool' => [
+                            'should' => [
+                                [
+                                    'bool' => [
+                                        'must_not' => [
+                                            ['exists' => ['field' => 'misc.subfield']]
+                                        ]
+                                    ]
+                                ]
+                            ]
+                        ]
+                    ]
+                ]
+            ]
+        ];
+
+        $this->assertEquals($result, $expected);
+    }
 }
