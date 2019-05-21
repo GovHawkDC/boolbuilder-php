@@ -82,7 +82,8 @@ function transformRule($group, $rule, $options)
     // negative operator, we express this with a sub boolean
     // query and must_not
     if (strtoupper($condition) === 'OR' &&
-        ES\isNegativeOperator($operator)) {
+        ES\isNegativeOperator($operator)
+    ) {
         return ['bool' => ['must_not' => [$fragment]]];
     }
 
@@ -92,17 +93,20 @@ function transformRule($group, $rule, $options)
 function isRuleExcluded($rule, $options)
 {
     if (isset($options['includeFields']) &&
-        !in_array($rule['field'], $options['includeFields'], true)) {
+        !in_array($rule['field'], $options['includeFields'], true)
+    ) {
         return true;
     }
 
     if (isset($options['excludeFields']) &&
-        in_array($rule['field'], $options['excludeFields'], true)) {
+        in_array($rule['field'], $options['excludeFields'], true)
+    ) {
         return true;
     }
 
     if (isset($options['excludeOperators']) &&
-        in_array($rule['operator'], $options['excludeOperators'], true)) {
+        in_array($rule['operator'], $options['excludeOperators'], true)
+    ) {
         return true;
     }
 

@@ -102,11 +102,9 @@ function getOperator($rule)
 {
     // NOTE: Using `json_encode` here to stringify any type of value that
     // is passed, since it can be a string, array, etc.
-    if (
-        isWildcardesqueRule($rule) &&
+    if (isWildcardesqueRule($rule) &&
         preg_match('/.(\\*|\\?)/', json_encode($rule['value']))
     ) {
-
         return 'wildcard';
     }
 
@@ -141,7 +139,6 @@ function isWildcardesqueRule($rule)
 {
     // Don't want to step on toes of explicit case where "slop" is intended
     if (isset($rule['operator']) && $rule['operator'] === 'proximity') {
-
         return false;
     }
 
@@ -154,16 +151,13 @@ function isWildcardesqueRule($rule)
     // Value is a string (e.g., via single text field) and its type
     // is intended to be a string
     if (is_string($v)) {
-
         return true;
     }
 
     // Covers "boost" case
     // @see https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-wildcard-query.html
-    if (
-        is_array($v) && count($v) === 2 && is_string($v[0]) && is_numeric($v[1])
+    if (is_array($v) && count($v) === 2 && is_string($v[0]) && is_numeric($v[1])
     ) {
-
         return true;
     }
 
