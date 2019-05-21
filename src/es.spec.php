@@ -1,8 +1,10 @@
 <?php
+namespace GovHawkDC\Boolbuilder\Spec;
+
 use PHPUnit\Framework\TestCase;
 use GovHawkDC\Boolbuilder\ES;
 
-final class EsTest extends TestCase
+final class ESTest extends TestCase
 {
     public function testArrayArgToGetArrayValueIsSelf()
     {
