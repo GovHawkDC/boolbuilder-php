@@ -34,51 +34,54 @@ function getClause($group, $rule)
 
 function getFragment($rule)
 {
-    $field = $rule['field'];
     switch ($rule['operator']) {
         case 'is_not_null':
         case 'is_null':
-            return ['exists' => ['field' => $field]];
+            return ['exists' => ['field' => $rule['field']]];
         default:
             $esOperator = getOperator($rule);
-            return [$esOperator => [$field => getValue($rule, $esOperator)]];
+            return [$esOperator => [$rule['field'] => getValue($rule, $esOperator)]];
     }
 }
 
 function getValue($rule, $esOperator)
 {
-    $value = $rule['value'];
     if ($esOperator === 'wildcard') {
-        return is_string($value)
-            ? $value
-            : ['value' => $value[0], 'boost' => floatval($value[1])];
+        return is_string($rule['value'])
+            ? $rule['value']
+            : ['value' => $rule['value'][0], 'boost' => floatval($rule['value'][1])];
     }
 
-    $operator = $rule['operator'];
-    switch ($operator) {
+    switch ($rule['operator']) {
         case 'between':
-            return ['gte' => $value[0], 'lte' => $value[1]];
+            return [
+                'gte' => $rule['value'][0],
+                'lte' => $rule['value'][1]
+            ];
         case 'contains':
         case 'equal':
         case 'is_not_null':
         case 'is_null':
         case 'not_equal':
-            return $value;
+            return $rule['value'];
         case 'greater':
-            return ['gt' => $value];
+            return ['gt' => $rule['value']];
         case 'greater_or_equal':
-            return ['gte' => $value];
+            return ['gte' => $rule['value']];
         case 'in':
         case 'not_in':
-            return getArrayValue($value);
+            return getArrayValue($rule['value']);
         case 'less':
-            return ['lt' => $value];
+            return ['lt' => $rule['value']];
         case 'less_or_equal':
-            return ['lte' => $value];
+            return ['lte' => $rule['value']];
         case 'proximity':
-            return ['query' => $value[0], 'slop' => intval($value[1])];
+            return [
+                'query' => $rule['value'][0],
+                'slop' => intval($rule['value'][1])
+            ];
         default:
-            $e = sprintf('Unable to build ES bool query with operator: "%s"', $operator);
+            $e = sprintf('Unable to build ES bool query with operator: "%s"', $rule['operator']);
             throw new \Exception($e);
     }
 }
