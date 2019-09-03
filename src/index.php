@@ -5,7 +5,7 @@ use GovHawkDC\Boolbuilder\ES;
 
 function transform($group, $options = [])
 {
-    if (!$group) {
+    if (empty($group)) {
         return [];
     }
 
