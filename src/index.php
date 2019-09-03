@@ -16,6 +16,8 @@ function transform($group, $options = [])
         return [];
     }
 
+    // Allow user functions to handle specific data types (e.g., change the default output)
+    // while processing
     if (isset($options['typeMapFuncs'][$QB])) {
         $userFunc = $options['typeMapFuncs'][$QB];
         $nextFunc = __NAMESPACE__ . '\\transformGroupPostFilter';
