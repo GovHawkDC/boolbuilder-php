@@ -621,7 +621,7 @@ final class IndexTest extends TestCase
         $this->assertEquals($result, $expected);
     }
 
-    public function testruleFiltersPreOption()
+    public function testAlterRuleFieldName()
     {
         $data = [
             'condition' => 'OR',
@@ -665,6 +665,66 @@ final class IndexTest extends TestCase
                                     'bool' => [
                                         'must_not' => [
                                             ['exists' => ['field' => 'misc.subfield']]
+                                        ]
+                                    ]
+                                ]
+                            ]
+                        ]
+                    ]
+                ]
+            ]
+        ];
+
+        $this->assertEquals($result, $expected);
+    }
+
+    public function testAlterRuleValues()
+    {
+        $data = [
+            'condition' => 'OR',
+            'rules' => [
+                [
+                    'QB' => 'book',
+                    'condition' => 'or',
+                    'rules' => [
+                        [
+                            'id' => 'misc',
+                            'field' => 'misc',
+                            'type' => 'string',
+                            'input' => 'text',
+                            'operator' => 'in',
+                            'value' => [
+                                'HELLO',
+                                'WORLD'
+                            ]
+                        ]
+                    ]
+                ]
+            ]
+        ];
+
+        $options = [];
+        $options['ruleMapFuncs'] = [];
+        $options['ruleMapFuncs']['book'] = [];
+        $options['ruleMapFuncs']['book']['misc'] = function ($rule) {
+            return array_merge($rule, [
+                'value' => array_map('strtolower', $rule['value'])
+            ]);
+        };
+
+        $result = Boolbuilder\transform($data, $options);
+
+        $expected = [
+            'bool' => [
+                'should' => [
+                    [
+                        'bool' => [
+                            'should' => [
+                                [
+                                    'terms' => [
+                                        'misc' => [
+                                            'hello',
+                                            'world'
                                         ]
                                     ]
                                 ]
