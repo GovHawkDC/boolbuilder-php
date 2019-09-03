@@ -69,8 +69,9 @@ function transformRule($group, $rule, $options)
         return [];
     }
 
-    if (isset($options['ruleFiltersPre'][$rule['field']])) {
-        $userFunc = $options['ruleFiltersPre'][$rule['field']];
+    $QB = isset($group['QB']) ? $group['QB'] : '';
+    if (isset($options['ruleMapFuncs'][$QB][$rule['field']])) {
+        $userFunc = $options['ruleMapFuncs'][$QB][$rule['field']];
         $fragment = ES\getFragment($userFunc($rule));
     } else {
         $fragment = ES\getFragment($rule);
