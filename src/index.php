@@ -16,8 +16,8 @@ function transform($group, $options = [])
         return [];
     }
 
-    if (isset($options['typeFilters'][$QB])) {
-        $userFunc = $options['typeFilters'][$QB];
+    if (isset($options['typeMapFuncs'][$QB])) {
+        $userFunc = $options['typeMapFuncs'][$QB];
         $nextFunc = __NAMESPACE__ . '\\transformGroupPostFilter';
 
         $t = $userFunc($group, $rules, $options, $nextFunc);
