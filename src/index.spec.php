@@ -644,16 +644,14 @@ final class IndexTest extends TestCase
         ];
 
         $options = [];
-        $options['ruleFiltersPre'] = [
-            'misc' => function ($rule) {
-                $field = $rule['field'];
-
-                return array_merge($rule, [
-                    'id' => "{$field}.subfield",
-                    'field' => "{$field}.subfield"
-                ]);
-            }
-        ];
+        $options['ruleMapFuncs'] = [];
+        $options['ruleMapFuncs']['book'] = [];
+        $options['ruleMapFuncs']['book']['misc'] = function ($rule) {
+            return array_merge($rule, [
+                'id' => "{$rule['field']}.subfield",
+                'field' => "{$rule['field']}.subfield"
+            ]);
+        };
 
         $result = Boolbuilder\transform($data, $options);
 
