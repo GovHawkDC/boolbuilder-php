@@ -61,11 +61,7 @@ function transformGroup($group, $rules, $options)
 
 function transformRule($group, $rule, $options)
 {
-    $condition = isset($group['condition']) ? $group['condition'] : '';
-    $operator = isset($rule['operator']) ? $rule['operator'] : '';
-    $rules = isset($rule['rules']) ? $rule['rules'] : [];
-
-    if (count($rules) > 0) {
+    if (isset($rule['rules']) && count($rule['rules']) > 0) {
         return transform($rule, $options);
     }
 
@@ -80,12 +76,12 @@ function transformRule($group, $rule, $options)
         $fragment = ES\getFragment($rule);
     }
 
+    $condition = isset($group['condition']) ? $group['condition'] : '';
+    $operator = isset($rule['operator']) ? $rule['operator'] : '';
     // this is a corner case, when we have an "or" group and a
     // negative operator, we express this with a sub boolean
     // query and must_not
-    if (strtoupper($condition) === 'OR' &&
-        ES\isNegativeOperator($operator)
-    ) {
+    if (strtoupper($condition) === 'OR' && ES\isNegativeOperator($operator)) {
         return ['bool' => ['must_not' => [$fragment]]];
     }
 
