@@ -11,12 +11,8 @@ function getArrayValue($value)
         return array_map('trim', explode(',', $value));
     }
 
-    throw new \Exception(
-        sprintf(
-            'Unable to build ES bool query with value type: "%s"',
-            gettype($value)
-        )
-    );
+    $e = sprintf('Unable to build ES bool query with value type: "%s"', gettype($value));
+    throw new \Exception($e);
 }
 
 function getClause($group, $rule)
@@ -39,7 +35,6 @@ function getClause($group, $rule)
 function getFragment($rule)
 {
     $field = $rule['field'];
-
     switch ($rule['operator']) {
         case 'is_not_null':
         case 'is_null':
@@ -52,15 +47,14 @@ function getFragment($rule)
 
 function getValue($rule, $esOperator)
 {
-    $operator = $rule['operator'];
     $value = $rule['value'];
-
     if ($esOperator === 'wildcard') {
         return is_string($value)
             ? $value
             : ['value' => $value[0], 'boost' => floatval($value[1])];
     }
 
+    $operator = $rule['operator'];
     switch ($operator) {
         case 'between':
             return ['gte' => $value[0], 'lte' => $value[1]];
@@ -84,12 +78,8 @@ function getValue($rule, $esOperator)
         case 'proximity':
             return ['query' => $value[0], 'slop' => intval($value[1])];
         default:
-            throw new \Exception(
-                sprintf(
-                    'Unable to build ES bool query with operator: "%s"',
-                    $operator
-                )
-            );
+            $e = sprintf('Unable to build ES bool query with operator: "%s"', $operator);
+            throw new \Exception($e);
     }
 }
 
@@ -98,8 +88,7 @@ function getOperator($rule)
     // NOTE: Using `json_encode` here to stringify any type of value that
     // is passed, since it can be a string, array, etc.
     if (isWildcardesqueRule($rule) &&
-        preg_match('/.(\\*|\\?)/', json_encode($rule['value']))
-    ) {
+        preg_match('/.(\\*|\\?)/', json_encode($rule['value']))) {
         return 'wildcard';
     }
 
@@ -141,18 +130,17 @@ function isWildcardesqueRule($rule)
         return false;
     }
 
-    $v = $rule['value'];
-
-    // Value is a string (e.g., via single text field) and its type
-    // is intended to be a string
-    if (is_string($v)) {
+    // Value is a string (e.g., via single text field) and its type is intended to be a string
+    if (is_string($rule['value'])) {
         return true;
     }
 
     // Covers "boost" case
     // @see https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-wildcard-query.html
-    if (is_array($v) && count($v) === 2 && is_string($v[0]) && is_numeric($v[1])
-    ) {
+    if (is_array($rule['value']) &&
+        count($rule['value']) === 2 &&
+        is_string($rule['value'][0]) &&
+        is_numeric($rule['value'][1])) {
         return true;
     }
 
