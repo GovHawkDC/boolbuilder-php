@@ -224,7 +224,7 @@ final class IndexTest extends TestCase
         ];
 
         $options = [];
-        $options['typeFilters'] = [
+        $options['typeMapFuncs'] = [
             'book' => function (
                 $group,
                 $rules,
@@ -319,7 +319,7 @@ final class IndexTest extends TestCase
         ];
 
         $options = [];
-        $options['typeFilters'] = [
+        $options['typeMapFuncs'] = [
             'book' => function (
                 $group,
                 $rules,
@@ -408,7 +408,7 @@ final class IndexTest extends TestCase
         ];
 
         $options = [];
-        $options['typeFilters'] = [
+        $options['typeMapFuncs'] = [
             'book' => function (
                 $group,
                 $rules,
@@ -497,7 +497,7 @@ final class IndexTest extends TestCase
         ];
 
         $options = [];
-        $options['typeFilters'] = [
+        $options['typeMapFuncs'] = [
             'book' => function (
                 $group,
                 $rules,
