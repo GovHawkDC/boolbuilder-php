@@ -30,7 +30,6 @@ function transform($group, $options = [])
     }
 
     $t = transformGroup($group, $rules, $options);
-
     if (empty($t)) {
         return [];
     }
@@ -45,7 +44,6 @@ function transformGroup($group, $rules, $options)
         function ($carry, $rule) use ($group, $options) {
             $clause = ES\getClause($group, $rule);
             $fragment = transformRule($group, $rule, $options);
-
             if (empty($fragment)) {
                 return $carry;
             }
@@ -53,7 +51,6 @@ function transformGroup($group, $rules, $options)
             $existingFragments = isset($carry[$clause])
                 ? $carry[$clause]
                 : [];
-
             return array_merge($carry, [
                 $clause => array_merge($existingFragments, [$fragment])
             ]);
