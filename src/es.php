@@ -22,7 +22,6 @@ function getArrayValue($value)
 function getClause($group, $rule)
 {
     $condition = isset($group['condition']) ? $group['condition'] : 'AND';
-
     switch (strtoupper($condition)) {
         case 'OR':
             return 'should';
@@ -32,12 +31,8 @@ function getClause($group, $rule)
                 ? 'must_not'
                 : 'must';
         default:
-            throw new \Exception(
-                sprintf(
-                    'Unable to build ES bool query with condition: "%s"',
-                    $condition
-                )
-            );
+            $e = sprintf('Unable to build ES bool query with condition: "%s"', $condition);
+            throw new \Exception($e);
     }
 }
 
