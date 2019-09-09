@@ -224,7 +224,7 @@ final class IndexTest extends TestCase
         ];
 
         $options = [];
-        $options['typeMapFuncs'] = [
+        $options['typeFuncMap'] = [
             'book' => function (
                 $group,
                 $rules,
@@ -319,7 +319,7 @@ final class IndexTest extends TestCase
         ];
 
         $options = [];
-        $options['typeMapFuncs'] = [
+        $options['typeFuncMap'] = [
             'book' => function (
                 $group,
                 $rules,
@@ -408,7 +408,7 @@ final class IndexTest extends TestCase
         ];
 
         $options = [];
-        $options['typeMapFuncs'] = [
+        $options['typeFuncMap'] = [
             'book' => function (
                 $group,
                 $rules,
@@ -497,7 +497,7 @@ final class IndexTest extends TestCase
         ];
 
         $options = [];
-        $options['typeMapFuncs'] = [
+        $options['typeFuncMap'] = [
             'book' => function (
                 $group,
                 $rules,
@@ -644,9 +644,9 @@ final class IndexTest extends TestCase
         ];
 
         $options = [];
-        $options['ruleMapFuncs'] = [];
-        $options['ruleMapFuncs']['book'] = [];
-        $options['ruleMapFuncs']['book']['misc'] = function ($rule) {
+        $options['ruleFuncMap'] = [];
+        $options['ruleFuncMap']['book'] = [];
+        $options['ruleFuncMap']['book']['misc'] = function ($rule) {
             return array_merge($rule, [
                 'id' => "{$rule['field']}.subfield",
                 'field' => "{$rule['field']}.subfield"
@@ -704,9 +704,9 @@ final class IndexTest extends TestCase
         ];
 
         $options = [];
-        $options['ruleMapFuncs'] = [];
-        $options['ruleMapFuncs']['book'] = [];
-        $options['ruleMapFuncs']['book']['misc'] = function ($rule) {
+        $options['ruleFuncMap'] = [];
+        $options['ruleFuncMap']['book'] = [];
+        $options['ruleFuncMap']['book']['misc'] = function ($rule) {
             return array_merge($rule, [
                 'value' => array_map('strtolower', $rule['value'])
             ]);
