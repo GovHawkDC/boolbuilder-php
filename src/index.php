@@ -17,8 +17,8 @@ function transform($group, $options = [])
 
     // Allow user functions to handle specific data types (e.g., change the default output)
     // while processing
-    if (isset($options['typeMapFuncs'][$QB])) {
-        $userFunc = $options['typeMapFuncs'][$QB];
+    if (isset($options['typeFuncMap'][$QB])) {
+        $userFunc = $options['typeFuncMap'][$QB];
         $nextFunc = __NAMESPACE__ . '\\transformGroup';
 
         $t = $userFunc($group, $rules, $options, $nextFunc);
@@ -70,8 +70,8 @@ function transformRule($group, $rule, $options)
     }
 
     $QB = isset($group['QB']) ? $group['QB'] : '';
-    if (isset($options['ruleMapFuncs'][$QB][$rule['field']])) {
-        $userFunc = $options['ruleMapFuncs'][$QB][$rule['field']];
+    if (isset($options['ruleFuncMap'][$QB][$rule['field']])) {
+        $userFunc = $options['ruleFuncMap'][$QB][$rule['field']];
         $fragment = ES\getFragment($userFunc($rule));
     } else {
         $fragment = ES\getFragment($rule);
