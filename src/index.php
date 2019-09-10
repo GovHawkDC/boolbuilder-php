@@ -14,7 +14,6 @@ function transform($group, $options = [])
     if (count($rules) < 1) {
         return [];
     }
-
     // Allow user functions to handle specific data types (e.g., change the default output)
     // while processing
     if (isset($options['typeFuncMap'][$QB])) {
@@ -61,7 +60,7 @@ function transformGroup($group, $rules, $options)
 
 function transformRule($group, $rule, $options)
 {
-    if (isset($rule['rules']) && count($rule['rules']) > 0) {
+    if (isset($rule['rules'])) {
         return transform($rule, $options);
     }
 
