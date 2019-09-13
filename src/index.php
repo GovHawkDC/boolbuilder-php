@@ -18,7 +18,7 @@ function transform($group, $options = [])
     // while processing
     if (isset($options['typeFuncMap'][$QB])) {
         $userFunc = $options['typeFuncMap'][$QB];
-        $nextFunc = __NAMESPACE__ . '\\transformGroup';
+        $nextFunc = __NAMESPACE__ . '\\transformRules';
 
         $t = $userFunc($group, $rules, $options, $nextFunc);
         if (empty($t)) {
@@ -28,7 +28,7 @@ function transform($group, $options = [])
         return ['bool' => $t];
     }
 
-    $t = transformGroup($group, $rules, $options);
+    $t = transformRules($group, $rules, $options);
     if (empty($t)) {
         return [];
     }
@@ -36,7 +36,7 @@ function transform($group, $options = [])
     return ['bool' => $t];
 }
 
-function transformGroup($group, $rules, $options)
+function transformRules($group, $rules, $options)
 {
     return array_reduce(
         $rules,
