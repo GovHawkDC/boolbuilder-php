@@ -18,14 +18,15 @@ function getArrayValue($value)
 function getClause($group, $rule)
 {
     $condition = isset($group['condition']) ? $group['condition'] : 'AND';
-    switch (strtoupper($condition)) {
+    $condition = strtoupper($condition);
+    switch ($condition) {
         case 'OR':
             return 'should';
         case 'AND':
-            return isset($rule['operator']) &&
-            isNegativeOperator($rule['operator'])
-                ? 'must_not'
-                : 'must';
+            if (isset($rule['operator']) && isNegativeOperator($rule['operator'])) {
+                return 'must_not';
+            }
+            return 'must';
         default:
             $e = sprintf('Unable to build ES bool query with condition: "%s"', $condition);
             throw new \Exception($e);
@@ -88,10 +89,7 @@ function getValue($rule, $esOperator)
 
 function getOperator($rule)
 {
-    // NOTE: Using `json_encode` here to stringify any type of value that
-    // is passed, since it can be a string, array, etc.
-    if (isWildcardesqueRule($rule) &&
-        preg_match('/.(\\*|\\?)/', json_encode($rule['value']))) {
+    if (isWildcardesque($rule)) {
         return 'wildcard';
     }
 
@@ -122,7 +120,7 @@ function isNegativeOperator($operator)
     }
 }
 
-function isWildcardesqueRule($rule)
+function isWildcardesque($rule)
 {
     // Don't want to step on toes of explicit case where "slop" is intended
     if (isset($rule['operator']) && $rule['operator'] === 'proximity') {
@@ -134,8 +132,9 @@ function isWildcardesqueRule($rule)
     }
 
     // Value is a string (e.g., via single text field) and its type is intended to be a string
+    $pattern = '/.(\\*|\\?)/';
     if (is_string($rule['value'])) {
-        return true;
+        return boolval(preg_match($pattern, $rule['value']));
     }
 
     // Covers "boost" case
@@ -144,7 +143,7 @@ function isWildcardesqueRule($rule)
         count($rule['value']) === 2 &&
         is_string($rule['value'][0]) &&
         is_numeric($rule['value'][1])) {
-        return true;
+        return boolval(preg_match($pattern, $rule['value'][0]));
     }
 
     return false;
