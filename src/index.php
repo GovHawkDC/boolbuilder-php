@@ -5,17 +5,13 @@ use GovHawkDC\Boolbuilder\ES;
 
 function transform($group, $options = [])
 {
-    if (empty($group)) {
-        return [];
-    }
     return transformGroup($group, $options);
 }
 
 function transformGroup($group, $options)
 {
     $QB = isset($group['QB']) ? $group['QB'] : '';
-    $rules = isset($group['rules']) ? $group['rules'] : [];
-    if (count($rules) < 1) {
+    if (empty($group['rules'])) {
         return [];
     }
     // Allow user functions to handle specific data types (e.g., change the default output)
@@ -23,21 +19,9 @@ function transformGroup($group, $options)
     if (isset($options['typeFuncMap'][$QB])) {
         $userFunc = $options['typeFuncMap'][$QB];
         $nextFunc = __NAMESPACE__ . '\\transformRules';
-
-        $t = $userFunc($group, $rules, $options, $nextFunc);
-        if (empty($t)) {
-            return [];
-        }
-
-        return ['bool' => $t];
+        return $userFunc($group, $group['rules'], $options, $nextFunc);
     }
-
-    $t = transformRules($group, $rules, $options);
-    if (empty($t)) {
-        return [];
-    }
-
-    return ['bool' => $t];
+    return transformRules($group, $group['rules'], $options);
 }
 
 function transformRules($group, $rules, $options)
@@ -54,7 +38,7 @@ function transformRules($group, $rules, $options)
         }
         $ts[$clause][] = $fragment;
     }
-    return $ts;
+    return ES\getQuery($ts);
 }
 
 function transformRule($group, $rule, $options)
@@ -70,22 +54,10 @@ function transformRule($group, $rule, $options)
     $QB = isset($group['QB']) ? $group['QB'] : '';
     if (isset($options['ruleFuncMap'][$QB][$rule['field']])) {
         $userFunc = $options['ruleFuncMap'][$QB][$rule['field']];
-        $fragment = ES\getFragment($userFunc($rule));
-    } else {
-        $fragment = ES\getFragment($rule);
+        // TODO: Change signature of $userFunc to take $group as well...
+        return ES\getFragment($group, $userFunc($rule));
     }
-
-    $condition = isset($group['condition']) ? $group['condition'] : '';
-    $condition = strtoupper($condition);
-    $operator = isset($rule['operator']) ? $rule['operator'] : '';
-    // this is a corner case, when we have an "or" group and a
-    // negative operator, we express this with a sub boolean
-    // query and must_not
-    if ($condition === 'OR' && ES\isNegativeOperator($operator)) {
-        return ['bool' => ['must_not' => [$fragment]]];
-    }
-
-    return $fragment;
+    return ES\getFragment($group, $rule);
 }
 
 function isRuleExcluded($rule, $options)
