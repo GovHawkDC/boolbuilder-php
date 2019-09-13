@@ -8,7 +8,11 @@ function transform($group, $options = [])
     if (empty($group)) {
         return [];
     }
+    return transformGroup($group, $options);
+}
 
+function transformGroup($group, $options)
+{
     $QB = isset($group['QB']) ? $group['QB'] : '';
     $rules = isset($group['rules']) ? $group['rules'] : [];
     if (count($rules) < 1) {
@@ -61,7 +65,7 @@ function transformRules($group, $rules, $options)
 function transformRule($group, $rule, $options)
 {
     if (isset($rule['rules'])) {
-        return transform($rule, $options);
+        return transformGroup($rule, $options);
     }
 
     if (isRuleExcluded($rule, $options)) {
