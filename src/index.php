@@ -77,11 +77,12 @@ function transformRule($group, $rule, $options)
     }
 
     $condition = isset($group['condition']) ? $group['condition'] : '';
+    $condition = strtoupper($condition);
     $operator = isset($rule['operator']) ? $rule['operator'] : '';
     // this is a corner case, when we have an "or" group and a
     // negative operator, we express this with a sub boolean
     // query and must_not
-    if (strtoupper($condition) === 'OR' && ES\isNegativeOperator($operator)) {
+    if ($condition === 'OR' && ES\isNegativeOperator($operator)) {
         return ['bool' => ['must_not' => [$fragment]]];
     }
 
