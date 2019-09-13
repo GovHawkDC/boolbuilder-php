@@ -42,24 +42,19 @@ function transformGroup($group, $options)
 
 function transformRules($group, $rules, $options)
 {
-    return array_reduce(
-        $rules,
-        function ($carry, $rule) use ($group, $options) {
-            $clause = ES\getClause($group, $rule);
-            $fragment = transformRule($group, $rule, $options);
-            if (empty($fragment)) {
-                return $carry;
-            }
-
-            $existingFragments = isset($carry[$clause])
-                ? $carry[$clause]
-                : [];
-            return array_merge($carry, [
-                $clause => array_merge($existingFragments, [$fragment])
-            ]);
-        },
-        []
-    );
+    $ts = [];
+    foreach ($rules as $rule) {
+        $fragment = transformRule($group, $rule, $options);
+        if (empty($fragment)) {
+            continue;
+        }
+        $clause = ES\getClause($group, $rule);
+        if (!isset($ts[$clause])) {
+            $ts[$clause] = [];
+        }
+        $ts[$clause][] = $fragment;
+    }
+    return $ts;
 }
 
 function transformRule($group, $rule, $options)
