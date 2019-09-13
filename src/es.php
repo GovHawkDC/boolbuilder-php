@@ -1,20 +1,6 @@
 <?php
 namespace GovHawkDC\Boolbuilder\ES;
 
-function getArrayValue($value)
-{
-    if (is_array($value)) {
-        return $value;
-    }
-
-    if (is_string($value)) {
-        return array_map('trim', explode(',', $value));
-    }
-
-    $e = sprintf('Unable to build ES bool query with value type: "%s"', gettype($value));
-    throw new \Exception($e);
-}
-
 function getClause($group, $rule)
 {
     $condition = isset($group['condition']) ? $group['condition'] : 'AND';
@@ -28,83 +14,121 @@ function getClause($group, $rule)
             }
             return 'must';
         default:
-            $e = sprintf('Unable to build ES bool query with condition: "%s"', $condition);
+            $e = sprintf('Unknown condition "%s"', strval($rule['condition']));
             throw new \Exception($e);
     }
 }
 
 function getFragment($rule)
 {
-    switch ($rule['operator']) {
-        case 'is_not_null':
-        case 'is_null':
-            return ['exists' => ['field' => $rule['field']]];
-        default:
-            $esOperator = getOperator($rule);
-            return [$esOperator => [$rule['field'] => getValue($rule, $esOperator)]];
-    }
-}
-
-function getValue($rule, $esOperator)
-{
-    if ($esOperator === 'wildcard') {
-        return is_string($rule['value'])
-            ? $rule['value']
-            : ['value' => $rule['value'][0], 'boost' => floatval($rule['value'][1])];
+    if (isWildcardesque($rule)) {
+        if (is_string($rule['value'])) {
+            return [
+                'wildcard' => [
+                    $rule['field'] => $rule['value']
+                ]
+            ];
+        }
+        // isWildcardesque makes sure that $rule['value'] is an array in the following
+        // format...
+        return [
+            'wildcard' => [
+                $rule['field'] => [
+                    'value' => $rule['value'][0],
+                    'boost' => floatval($rule['value'][1])
+                ]
+            ]
+        ];
     }
 
     switch ($rule['operator']) {
         case 'between':
             return [
-                'gte' => $rule['value'][0],
-                'lte' => $rule['value'][1]
+                'range' => [
+                    $rule['field'] => [
+                        'gte' => $rule['value'][0],
+                        'lte' => $rule['value'][1]
+                    ]
+                ]
             ];
         case 'contains':
+            return [
+                'match' => [
+                    $rule['field'] => $rule['value']
+                ]
+            ];
         case 'equal':
+        case 'not_equal':
+            return [
+                'match_phrase' => [
+                    $rule['field'] => $rule['value']
+                ]
+            ];
+        case 'greater':
+            return [
+                'range' => [
+                    $rule['field'] => [
+                        'gt' => $rule['value']
+                    ]
+                ]
+            ];
+        case 'greater_or_equal':
+            return [
+                'range' => [
+                    $rule['field'] => [
+                        'gte' => $rule['value']
+                    ]
+                ]
+            ];
+        case 'in':
+        case 'not_in':
+            if (is_string($rule['value'])) {
+                return [
+                    'terms' => [
+                        $rule['field'] => array_map('trim', explode(',', $rule['value']))
+                    ]
+                ];
+            }
+            return [
+                'terms' => [
+                    $rule['field'] => $rule['value']
+                ]
+            ];
         case 'is_not_null':
         case 'is_null':
-        case 'not_equal':
-            return $rule['value'];
-        case 'greater':
-            return ['gt' => $rule['value']];
-        case 'greater_or_equal':
-            return ['gte' => $rule['value']];
-        case 'in':
-        case 'not_in':
-            return getArrayValue($rule['value']);
+            return [
+                'exists' => [
+                    'field' => $rule['field']
+                ]
+            ];
         case 'less':
-            return ['lt' => $rule['value']];
+            return [
+                'range' => [
+                    $rule['field'] => [
+                        'lt' => $rule['value']
+                    ]
+                ]
+            ];
         case 'less_or_equal':
-            return ['lte' => $rule['value']];
+            return [
+                'range' => [
+                    $rule['field'] => [
+                        'lte' => $rule['value']
+                    ]
+                ]
+            ];
         case 'proximity':
             return [
-                'query' => $rule['value'][0],
-                'slop' => intval($rule['value'][1])
+                'match_phrase' => [
+                    $rule['field'] => [
+                        'query' => $rule['value'][0],
+                        'slop' => intval($rule['value'][1])
+                    ]
+                ]
             ];
         default:
-            $e = sprintf('Unable to build ES bool query with operator: "%s"', $rule['operator']);
+            $e = sprintf('Unknown operator "%s"', strval($rule['operator']));
             throw new \Exception($e);
-    }
-}
-
-function getOperator($rule)
-{
-    if (isWildcardesque($rule)) {
-        return 'wildcard';
-    }
-
-    switch ($rule['operator']) {
-        case 'contains':
-            return 'match';
-        case 'equal':
-        case 'not_equal':
-        case 'proximity':
-            return 'match_phrase';
-        case 'in':
-        case 'not_in':
-            return 'terms';
-        default:
-            return 'range';
     }
 }
 
@@ -120,31 +144,37 @@ function isNegativeOperator($operator)
     }
 }
 
+function isBoostesque($rule)
+{
+    if (!is_array($rule['value']) || count($rule['value']) !== 2) {
+        return false;
+    }
+    // @see https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-wildcard-query.html
+    if (is_string($rule['value'][0]) && is_numeric($rule['value'][1])) {
+        return true;
+    }
+    return false;
+}
+
 function isWildcardesque($rule)
 {
-    // Don't want to step on toes of explicit case where "slop" is intended
-    if (isset($rule['operator']) && $rule['operator'] === 'proximity') {
+    if ($rule['type'] !== 'string') {
         return false;
     }
-
-    if (isset($rule['type']) && $rule['type'] !== 'string') {
+    // The existence operators 'is_not_null' and 'is_null' do not require checking of the
+    // value string, so we bypass wildcard pattern check... Proximity is purposely
+    // avoided so we don't create a false positive where "slop" is intended
+    if (in_array($rule['operator'], ['is_not_null', 'is_null', 'proximity'], true)) {
         return false;
     }
-
     // Value is a string (e.g., via single text field) and its type is intended to be a string
     $pattern = '/.(\\*|\\?)/';
     if (is_string($rule['value'])) {
         return boolval(preg_match($pattern, $rule['value']));
     }
-
-    // Covers "boost" case
-    // @see https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-wildcard-query.html
-    if (is_array($rule['value']) &&
-        count($rule['value']) === 2 &&
-        is_string($rule['value'][0]) &&
-        is_numeric($rule['value'][1])) {
+    // Possible "boost" case; if it appears so, check the query string...
+    if (isBoostesque($rule)) {
         return boolval(preg_match($pattern, $rule['value'][0]));
     }
-
     return false;
 }
