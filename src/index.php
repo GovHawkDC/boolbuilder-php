@@ -3,37 +3,46 @@ namespace GovHawkDC\Boolbuilder;
 
 use GovHawkDC\Boolbuilder\ES;
 
+const NESTED_TYPE_HANDLING_ALLOW = 'allow';
+const NESTED_TYPE_HANDLING_DENY = 'deny';
+const NESTED_TYPE_HANDLING_EMPTY = 'empty';
 const DEFAULT_QB = 'QBGroup';
 
 function handleGroup($group, $options, $parentQB)
 {
-    // If the $parentQB context is non-default, we stay in that context... Since the
-    // $parentQB context is non-default already, user funcs will no longer be applied
-    if ($parentQB !== DEFAULT_QB) {
-        // If the current $group "QB" context is default, we re-set the context to that
-        // of the $parentQB
-        if (!isset($group['QB']) || $group['QB'] === DEFAULT_QB) {
-            $group['QB'] = $parentQB;
-            return $group;
-        }
-        if ($group['QB'] === $parentQB) {
-            return $group;
-        }
-        // Let users know that nesting of different non-default "QB" contexts is not
-        // supported...
-        throw new \Exception('Unable to process nested group of different custom type');
-    }
-    // Default "QB" contexts will not have user funcs applied...
+    // No user funcs for default "QB"
     if (!isset($group['QB']) || $group['QB'] === DEFAULT_QB) {
-        $group['QB'] = DEFAULT_QB;
+        // Current $group w/ default "QB" inherits $parentQB
+        $group['QB'] = $parentQB;
         return $group;
     }
-    // Finally, check for user func and apply if present...
-    if (isset($options['typeFuncMap'][$group['QB']])) {
-        $userFunc = $options['typeFuncMap'][$group['QB']];
-        return $userFunc($group, $options);
+    // No user funcs for repeating "QB" (e.g., child $group with same "QB")
+    if ($group['QB'] === $parentQB) {
+        return $group;
     }
-    return $group;
+    // Transition from default ancestor "groups" to non-default "QB"
+    if ($parentQB === DEFAULT_QB) {
+        if (isset($options['typeFuncMap'][$group['QB']])) {
+            $userFunc = $options['typeFuncMap'][$group['QB']];
+            return $userFunc($group, $options);
+        }
+        return $group;
+    }
+    // Transition from non-default ancestor "groups" to a different non-default "QB"
+    switch ($options['nestedTypeHandling']) {
+        case NESTED_TYPE_HANDLING_ALLOW:
+            if (isset($options['typeFuncMap'][$group['QB']])) {
+                $userFunc = $options['typeFuncMap'][$group['QB']];
+                return $userFunc($group, $options);
+            }
+            return $group;
+        case NESTED_TYPE_HANDLING_DENY:
+            throw new \Exception('Unable to process nested group of different custom type');
+        case NESTED_TYPE_HANDLING_EMPTY:
+            return [];
+        default:
+            throw new \Exception('Unknown nestedTypeHandling option value');
+    }
 }
 
 function handleRule($group, $rule, $options)
@@ -72,6 +81,9 @@ function isRuleExcluded($group, $rule, $options)
 
 function transform($group, $options = [])
 {
+    $defaults = [];
+    $defaults['nestedTypeHandling'] = NESTED_TYPE_HANDLING_DENY;
+    $options = array_merge($defaults, $options);
     return transformGroup($group, $options, DEFAULT_QB);
 }
 
