@@ -980,4 +980,48 @@ final class IndexTest extends TestCase
 
         $this->assertEquals($query, Boolbuilder\transform($group, $options));
     }
+
+    public function testMaxDepthTransform()
+    {
+        $this->expectException(\Exception::class);
+
+        $group = [
+            'QB' => 'Chat',
+            'condition' => 'AND',
+            'rules' => [
+                [
+                    'field' => 'user',
+                    'type' => 'string',
+                    'operator' => 'contains',
+                    'value' => 'elasticsearch'
+                ],
+                [
+                    'QB' => 'Chat',
+                    'condition' => 'AND',
+                    'rules' => [
+                        [
+                            'QB' => 'Chat',
+                            'condition' => 'AND',
+                            'rules' => [
+                                [
+                                    'QB' => 'Chat',
+                                    'condition' => 'AND',
+                                    'rules' => [
+                                        [
+                                            'field' => 'user',
+                                            'type' => 'string',
+                                            'operator' => 'contains',
+                                            'value' => 'elasticsearch'
+                                        ]
+                                    ]
+                                ]
+                            ]
+                        ]
+                    ]
+                ]
+            ]
+        ];
+
+        Boolbuilder\transform($group, [], 2);
+    }
 }
