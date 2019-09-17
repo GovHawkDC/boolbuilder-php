@@ -3,15 +3,14 @@ namespace GovHawkDC\Boolbuilder\ES;
 
 function getClause($group, $rule)
 {
-    $condition = isset($group['condition']) ? $group['condition'] : 'AND';
-    $condition = strtoupper($condition);
+    $condition = getCondition($group);
     switch ($condition) {
         case 'OR':
             return 'should';
         case 'AND':
             // Kinda confusing, but, w/ nesting, sometimes $rule can be a "group", so we
             // need to make sure $rule is a "rule" by testing for the absence of nested
-            // rules (as a rule terminates; it doesn't have nested sub-rules)
+            // rules (i.e., if the "rules" key is not set
             if (!isset($rule['rules']) && isNegativeOperator($rule)) {
                 return 'must_not';
             }
@@ -22,27 +21,47 @@ function getClause($group, $rule)
     }
 }
 
-function getFragment($group, $rule)
+function getCompoundQuery($clauses)
 {
-    $fragment = getFragmentHelper($group, $rule);
+    if (empty($clauses)) {
+        return [];
+    }
+    return [
+        'bool' => $clauses
+    ];
+}
+
+function getCondition($group, $default = 'AND')
+{
+    if (isset($group['condition'])) {
+        return strtoupper($group['condition']);
+    }
+    return $default;
+}
+
+function getQuery($group, $rule)
+{
+    $query = getQueryHelper($group, $rule);
     // this is a corner case, when we have an "or" group and a negative operator, we
     // express this with a nested bool query and "must_not"
-    $condition = isset($group['condition']) ? $group['condition'] : 'AND';
-    $condition = strtoupper($condition);
+    $condition = getCondition($group);
     if ($condition === 'OR' && isNegativeOperator($rule)) {
         return [
             'bool' => [
                 'must_not' => [
-                    $fragment
+                    $query
                 ]
             ]
         ];
     }
-    return $fragment;
+    return $query;
 }
 
-function getFragmentHelper($group, $rule)
+function getQueryHelper($group, $rule)
 {
+    // NOTE: The wildcard check, occurring before the switch below, can allow for unknown
+    // operators to pass through; however, we're permitting that as this library is not
+    // intended to serve as a validator as well...
     if (isWildcardesque($rule)) {
         if (is_string($rule['value'])) {
             return [
@@ -152,16 +171,6 @@ function getFragmentHelper($group, $rule)
             $e = sprintf('Unknown operator "%s"', strval($rule['operator']));
             throw new \Exception($e);
     }
-}
-
-function getQuery($fragments)
-{
-    if (empty($fragments)) {
-        return [];
-    }
-    return [
-        'bool' => $fragments
-    ];
 }
 
 function isBoostesque($rule)
