@@ -7,20 +7,26 @@ const DEFAULT_QB = 'QBGroup';
 
 function handleGroup($group, $options, $context)
 {
-    // Setting to default to simplify other checks
-    if (!isset($group['QB'])) {
-        $group['QB'] = $context;
-    }
-    // We don't want to allow user funcs to be applied to the default "QB" or to
-    // type contexts that have already been created...
-    if (in_array($group['QB'], [DEFAULT_QB, $context], true)) {
-        return $group;
-    }
-    // We do not allow for nested processing of custom types
+    // Once we've entered a non-default $context, we stay in that $context for the rest
+    // of that particular branch...
     if ($context !== DEFAULT_QB) {
+        // If the current $group's "QB" context is default or matches the non-default
+        // $context, then we just force set it and return... We don't want to re-apply
+        // any user funcs
+        if (!isset($group['QB']) ||
+            in_array($group['QB'], [DEFAULT_QB, $context], true)) {
+            $group['QB'] = $context;
+            return $group;
+        }
+        // Let users know that nesting of non-default $context is not supported...
         throw new \Exception('Unable to process nested group of different custom type');
     }
-    // Apply user func to $group if available
+    // We do not want to apply user funcs to the default $context of the current $group
+    if (!isset($group['QB']) || $group['QB'] === DEFAULT_QB) {
+        $group['QB'] = DEFAULT_QB;
+        return $group;
+    }
+    // Otherwise, assume current $group has custom "QB" context...
     if (isset($options['typeFuncMap'][$group['QB']])) {
         $userFunc = $options['typeFuncMap'][$group['QB']];
         return $userFunc($group, $options);
@@ -73,15 +79,12 @@ function transformGroup($group, $options, $context)
     if (empty($group['rules'])) {
         return [];
     }
-    return transformRules($group, $group['rules'], $options, $group['QB']);
+    return transformRules($group, $options);
 }
 
-function transformRule($group, $rule, $options, $context)
+function transformRule($group, $rule, $options)
 {
     if (isset($rule['rules'])) {
-        if ($context !== DEFAULT_QB) {
-            return transformGroup($rule, $options, $context);
-        }
         return transformGroup($rule, $options, $group['QB']);
     }
     if (isRuleExcluded($group, $rule, $options)) {
@@ -90,12 +93,12 @@ function transformRule($group, $rule, $options, $context)
     return ES\getQuery($group, $rule);
 }
 
-function transformRules($group, $rules, $options, $context)
+function transformRules($group, $options)
 {
     $clauses = [];
-    foreach ($rules as $rule) {
+    foreach ($group['rules'] as $rule) {
         $rule = handleRule($group, $rule, $options);
-        $query = transformRule($group, $rule, $options, $context);
+        $query = transformRule($group, $rule, $options);
         if (empty($query)) {
             continue;
         }
