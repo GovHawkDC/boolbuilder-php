@@ -886,7 +886,7 @@ final class IndexTest extends TestCase
         $options['nestedTypeHandling'] = Boolbuilder\NESTED_TYPE_HANDLING_ALLOW;
         $options['ruleFuncMap'] = [];
         $options['ruleFuncMap']['Chat'] = [];
-        $options['ruleFuncMap']['Chat']['ref'] = function () {
+        $options['ruleFuncMap']['Chat']['ref'] = function ($group, $rule, $options) {
             return [
                 'QB' => 'Message',
                 'condition' => 'OR',
