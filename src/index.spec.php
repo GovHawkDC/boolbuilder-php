@@ -475,4 +475,144 @@ final class IndexTest extends TestCase
         ];
         Boolbuilder\transform($group);
     }
+
+    public function testMultipleRuleAndTypeFuncMapTransform()
+    {
+        $group = [
+            'condition' => 'OR',
+            'rules' => [
+                [
+                    'QB' => 'Message',
+                    'condition' => 'OR',
+                    'rules' => [
+                        [
+                            'field' => 'user',
+                            'type' => 'string',
+                            'operator' => 'contains',
+                            'value' => 'elasticsearch'
+                        ]
+                    ]
+                ],
+                [
+                    'QB' => 'Chat',
+                    'condition' => 'OR',
+                    'rules' => [
+                        [
+                            'field' => 'message',
+                            'type' => 'string',
+                            'operator' => 'equal',
+                            'value' => 'this is a test'
+                        ],
+                        [
+                            'field' => 'user',
+                            'type' => 'string',
+                            'operator' => 'in',
+                            'value' => ['kimchy', 'elasticsearch']
+                        ]
+                    ]
+                ]
+            ]
+        ];
+
+        $options = [];
+        $options['typeFuncMap'] = [];
+        $options['typeFuncMap']['Chat'] = function ($group, $options) {
+            return [
+                'QB' => 'Chat',
+                'condition' => 'AND',
+                'rules' => [
+                    [
+                        'field' => 'app',
+                        'type' => 'string',
+                        'operator' => 'in',
+                        'value' => ['video', 'audio']
+                    ],
+                    $group
+                ]
+            ];
+        };
+        $options['typeFuncMap']['Message'] = function ($group, $options) {
+            return [
+                'QB' => 'Message',
+                'condition' => 'AND',
+                'rules' => [
+                    [
+                        'field' => 'app',
+                        'type' => 'string',
+                        'operator' => 'in',
+                        'value' => ['blog']
+                    ],
+                    $group
+                ]
+            ];
+        };
+        $options['ruleFuncMap'] = ['Chat'];
+        $options['ruleFuncMap']['Chat'] = [];
+        $options['ruleFuncMap']['Chat']['user'] = function ($group, $rule, $options) {
+            if (is_string($rule['value'])) {
+                $rule['value'] =  strtoupper($rule['value']);
+            } elseif (is_array($rule['value'])) {
+                $rule['value'] = array_map('strtoupper', $rule['value']);
+            }
+            return $rule;
+        };
+
+        $query = [
+            'bool' => [
+                'should' => [
+                    [
+                        'bool' => [
+                            'must' => [
+                                [
+                                    'terms' => [
+                                        'app' => ['blog']
+                                    ]
+                                ],
+                                [
+                                    'bool' => [
+                                        'should' => [
+                                            [
+                                                'match' => [
+                                                    'user' => 'elasticsearch'
+                                                ]
+                                            ]
+                                        ]
+                                    ]
+                                ]
+                            ]
+                        ]
+                    ],
+                    [
+                        'bool' => [
+                            'must' => [
+                                [
+                                    'terms' => [
+                                        'app' => ['video', 'audio']
+                                    ]
+                                ],
+                                [
+                                    'bool' => [
+                                        'should' => [
+                                            [
+                                                'match_phrase' => [
+                                                    'message' => 'this is a test'
+                                                ]
+                                            ],
+                                            [
+                                                'terms' => [
+                                                    'user' => ['KIMCHY', 'ELASTICSEARCH']
+                                                ]
+                                            ]
+                                        ]
+                                    ]
+                                ]
+                            ]
+                        ]
+                    ]
+                ]
+            ]
+        ];
+
+        $this->assertEquals($query, Boolbuilder\transform($group, $options));
+    }
 }

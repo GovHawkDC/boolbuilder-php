@@ -5,28 +5,30 @@ use GovHawkDC\Boolbuilder\ES;
 
 const DEFAULT_QB = 'QBGroup';
 
-function handleGroup($group, $options, $context)
+function handleGroup($group, $options, $parentQB)
 {
-    // Once we've entered a non-default $context, we stay in that $context for the rest
-    // of that particular branch...
-    if ($context !== DEFAULT_QB) {
-        // If the current $group's "QB" context is default or matches the non-default
-        // $context, then we just force set it and return... We don't want to re-apply
-        // any user funcs
-        if (!isset($group['QB']) ||
-            in_array($group['QB'], [DEFAULT_QB, $context], true)) {
-            $group['QB'] = $context;
+    // If the $parentQB context is non-default, we stay in that context... Since the
+    // $parentQB context is non-default already, user funcs will no longer be applied
+    if ($parentQB !== DEFAULT_QB) {
+        // If the current $group "QB" context is default, we re-set the context to that
+        // of the $parentQB
+        if (!isset($group['QB']) || $group['QB'] === DEFAULT_QB) {
+            $group['QB'] = $parentQB;
             return $group;
         }
-        // Let users know that nesting of non-default $context is not supported...
+        if ($group['QB'] === $parentQB) {
+            return $group;
+        }
+        // Let users know that nesting of different non-default "QB" contexts is not
+        // supported...
         throw new \Exception('Unable to process nested group of different custom type');
     }
-    // We do not want to apply user funcs to the default $context of the current $group
+    // Default "QB" contexts will not have user funcs applied...
     if (!isset($group['QB']) || $group['QB'] === DEFAULT_QB) {
         $group['QB'] = DEFAULT_QB;
         return $group;
     }
-    // Otherwise, assume current $group has custom "QB" context...
+    // Finally, check for user func and apply if present...
     if (isset($options['typeFuncMap'][$group['QB']])) {
         $userFunc = $options['typeFuncMap'][$group['QB']];
         return $userFunc($group, $options);
@@ -73,9 +75,9 @@ function transform($group, $options = [])
     return transformGroup($group, $options, DEFAULT_QB);
 }
 
-function transformGroup($group, $options, $context)
+function transformGroup($group, $options, $parentQB)
 {
-    $group = handleGroup($group, $options, $context);
+    $group = handleGroup($group, $options, $parentQB);
     if (empty($group['rules'])) {
         return [];
     }
