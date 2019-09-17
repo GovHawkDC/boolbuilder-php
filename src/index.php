@@ -79,27 +79,30 @@ function isRuleExcluded($group, $rule, $options)
     return false;
 }
 
-function transform($group, $options = [])
+function transform($group, $options = [], $maxDepth = 24)
 {
     $defaults = [];
     $defaults['nestedTypeHandling'] = NESTED_TYPE_HANDLING_DENY;
     $options = array_merge($defaults, $options);
-    return transformGroup($group, $options, DEFAULT_QB);
+    return transformGroup($group, $options, DEFAULT_QB, 0, $maxDepth);
 }
 
-function transformGroup($group, $options, $parentQB)
+function transformGroup($group, $options, $parentQB, $depth, $maxDepth)
 {
+    if ($depth > $maxDepth) {
+        throw new \Exception('Max depth exceeded');
+    }
     $group = handleGroup($group, $options, $parentQB);
     if (empty($group['rules'])) {
         return [];
     }
-    return transformRules($group, $options);
+    return transformRules($group, $options, $depth, $maxDepth);
 }
 
-function transformRule($group, $rule, $options)
+function transformRule($group, $rule, $options, $depth, $maxDepth)
 {
     if (isset($rule['rules'])) {
-        return transformGroup($rule, $options, $group['QB']);
+        return transformGroup($rule, $options, $group['QB'], $depth + 1, $maxDepth);
     }
     if (isRuleExcluded($group, $rule, $options)) {
         return [];
@@ -107,12 +110,12 @@ function transformRule($group, $rule, $options)
     return ES\getQuery($group, $rule);
 }
 
-function transformRules($group, $options)
+function transformRules($group, $options, $depth, $maxDepth)
 {
     $clauses = [];
     foreach ($group['rules'] as $rule) {
         $rule = handleRule($group, $rule, $options);
-        $query = transformRule($group, $rule, $options);
+        $query = transformRule($group, $rule, $options, $depth, $maxDepth);
         if (empty($query)) {
             continue;
         }
