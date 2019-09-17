@@ -615,4 +615,249 @@ final class IndexTest extends TestCase
 
         $this->assertEquals($query, Boolbuilder\transform($group, $options));
     }
+
+    public function testAllowNestedCustomTypeTransform()
+    {
+        $group = [
+            'QB' => 'Chat',
+            'condition' => 'AND',
+            'rules' => [
+                [
+                    'field' => 'user',
+                    'type' => 'string',
+                    'operator' => 'contains',
+                    'value' => 'elasticsearch'
+                ],
+                [
+                    'QB' => 'Message',
+                    'condition' => 'OR',
+                    'rules' => [
+                        [
+                            'field' => 'message',
+                            'type' => 'string',
+                            'operator' => 'equal',
+                            'value' => 'this is a test'
+                        ]
+                    ]
+                ]
+            ]
+        ];
+
+        $options = [];
+        $options['nestedTypeHandling'] = Boolbuilder\NESTED_TYPE_HANDLING_ALLOW;
+        $options['typeFuncMap'] = [];
+        $options['typeFuncMap']['Chat'] = function ($group, $options) {
+            return [
+                'QB' => 'Chat',
+                'condition' => 'AND',
+                'rules' => [
+                    [
+                        'field' => 'app',
+                        'type' => 'string',
+                        'operator' => 'in',
+                        'value' => ['video', 'audio']
+                    ],
+                    $group
+                ]
+            ];
+        };
+        $options['typeFuncMap']['Message'] = function ($group, $options) {
+            return [
+                'QB' => 'Message',
+                'condition' => 'AND',
+                'rules' => [
+                    [
+                        'field' => 'app',
+                        'type' => 'string',
+                        'operator' => 'in',
+                        'value' => ['blog']
+                    ],
+                    $group
+                ]
+            ];
+        };
+
+        $nestedQuery = [
+            'bool' => [
+                'must' => [
+                    [
+                        'terms' => [
+                            'app' => ['blog']
+                        ]
+                    ],
+                    [
+                        'bool' => [
+                            'should' => [
+                                [
+                                    'match_phrase' => [
+                                        'message' => 'this is a test'
+                                    ]
+                                ]
+                            ]
+                        ]
+                    ]
+                ]
+            ]
+        ];
+        $query = [
+            'bool' => [
+                'must' => [
+                    [
+                        'terms' => [
+                            'app' => ['video', 'audio']
+                        ]
+                    ],
+                    [
+                        'bool' => [
+                            'must' => [
+                                [
+                                    'match' => [
+                                        'user' => 'elasticsearch'
+                                    ]
+                                ],
+                                $nestedQuery
+                            ]
+                        ]
+                    ]
+                ]
+            ]
+        ];
+
+        $this->assertEquals($query, Boolbuilder\transform($group, $options));
+    }
+
+    public function testEmptyNestedCustomTypeTransform()
+    {
+        $group = [
+            'condition' => 'AND',
+            'rules' => [
+                [
+                    'QB' => 'Chat',
+                    'condition' => 'AND',
+                    'rules' => [
+                        [
+                            'field' => 'user',
+                            'type' => 'string',
+                            'operator' => 'contains',
+                            'value' => 'elasticsearch'
+                        ],
+                        [
+                            'QB' => 'Message',
+                            'condition' => 'OR',
+                            'rules' => [
+                                [
+                                    'field' => 'message',
+                                    'type' => 'string',
+                                    'operator' => 'equal',
+                                    'value' => 'this is a test'
+                                ]
+                            ]
+                        ]
+                    ]
+                ],
+                [
+                    'QB' => 'Message',
+                    'condition' => 'OR',
+                    'rules' => [
+                        [
+                            'field' => 'message',
+                            'type' => 'string',
+                            'operator' => 'equal',
+                            'value' => 'this is a test'
+                        ]
+                    ]
+                ]
+            ]
+        ];
+
+        $options = [];
+        $options['nestedTypeHandling'] = Boolbuilder\NESTED_TYPE_HANDLING_EMPTY;
+        $options['typeFuncMap'] = [];
+        $options['typeFuncMap']['Chat'] = function ($group, $options) {
+            return [
+                'QB' => 'Chat',
+                'condition' => 'AND',
+                'rules' => [
+                    [
+                        'field' => 'app',
+                        'type' => 'string',
+                        'operator' => 'in',
+                        'value' => ['video', 'audio']
+                    ],
+                    $group
+                ]
+            ];
+        };
+        // NOTE: This should go unused when "Message" is nested
+        $options['typeFuncMap']['Message'] = function ($group, $options) {
+            return [
+                'QB' => 'Message',
+                'condition' => 'AND',
+                'rules' => [
+                    [
+                        'field' => 'app',
+                        'type' => 'string',
+                        'operator' => 'in',
+                        'value' => ['blog']
+                    ],
+                    $group
+                ]
+            ];
+        };
+
+        $chatQuery = [
+            'bool' => [
+                'must' => [
+                    [
+                        'terms' => [
+                            'app' => ['video', 'audio']
+                        ]
+                    ],
+                    [
+                        'bool' => [
+                            'must' => [
+                                [
+                                    'match' => [
+                                        'user' => 'elasticsearch'
+                                    ]
+                                ]
+                            ]
+                        ]
+                    ]
+                ]
+            ]
+        ];
+        $messageQuery = [
+            'bool' => [
+                'must' => [
+                    [
+                        'terms' => [
+                            'app' => ['blog']
+                        ]
+                    ],
+                    [
+                        'bool' => [
+                            'should' => [
+                                [
+                                    'match_phrase' => [
+                                        'message' => 'this is a test'
+                                    ]
+                                ]
+                            ]
+                        ]
+                    ]
+                ]
+            ]
+        ];
+        $query = [
+            'bool' => [
+                'must' => [
+                    $chatQuery,
+                    $messageQuery
+                ]
+            ]
+        ];
+
+        $this->assertEquals($query, Boolbuilder\transform($group, $options));
+    }
 }
