@@ -167,6 +167,20 @@ function getQueryHelper($group, $rule)
                     ]
                 ]
             ];
+        case 'syntax':
+            if (is_string($rule['value'])) {
+                return [
+                    'query_string' => [
+                        'query' => $rule['value']
+                    ]
+                ];
+            }
+            return [
+                'query_string' => [
+                    'query' => $rule['value'][0],
+                    'default_operator' => $rule['value'][1]
+                ]
+            ];
         default:
             $e = sprintf('Unknown operator "%s"', strval($rule['operator']));
             throw new \Exception($e);

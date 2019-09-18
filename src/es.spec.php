@@ -175,6 +175,22 @@ final class ESTest extends TestCase
         $this->assertEquals($query, ES\getQueryHelper([], $rule));
     }
 
+    public function testSyntaxQuery()
+    {
+        $rule = [];
+        $rule['field'] = 'message';
+        $rule['operator'] = 'syntax';
+        $rule['type'] = 'string';
+        $rule['value'] = ['(new york city) OR (big apple)', 'AND'];
+
+        $query = [];
+        $query['query_string'] = [];
+        $query['query_string']['query'] = '(new york city) OR (big apple)';
+        $query['query_string']['default_operator'] = 'AND';
+
+        $this->assertEquals($query, ES\getQueryHelper([], $rule));
+    }
+
     public function testUnknownOperatorQuery()
     {
         $this->expectException(\Exception::class);
