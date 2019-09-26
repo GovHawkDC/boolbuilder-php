@@ -81,14 +81,10 @@ function handleRule($group, $rule, $options)
 
 function isRuleExcluded($group, $rule, $options)
 {
-    if (isset($options['excludeFields']) &&
-        in_array($rule['field'], $options['excludeFields'], true)
-    ) {
+    if (in_array($rule['field'], $options['excludeFields'], true)) {
         return true;
     }
-    if (isset($options['excludeOperators']) &&
-        in_array($rule['operator'], $options['excludeOperators'], true)
-    ) {
+    if (in_array($rule['operator'], $options['excludeOperators'], true)) {
         return true;
     }
     return false;
@@ -97,6 +93,8 @@ function isRuleExcluded($group, $rule, $options)
 function transform($group, $options = [], $maxDepth = 24)
 {
     $defaults = [];
+    $defaults['excludeFields'] = [];
+    $defaults['excludeOperators'] = [];
     $defaults['nestedTypeHandling'] = NESTED_TYPE_HANDLING_DENY;
     $defaults['nestedTypeTransitionMap'] = [];
     $options = array_merge($defaults, $options);
