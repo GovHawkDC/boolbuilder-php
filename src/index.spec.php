@@ -98,66 +98,6 @@ final class IndexTest extends TestCase
         $this->assertEquals($query, Boolbuilder\transform($group));
     }
 
-    public function testIncludeFieldsTransform()
-    {
-        $group = [
-            'condition' => 'AND',
-            'rules' => [
-                [
-                    'field' => 'user',
-                    'type' => 'string',
-                    'operator' => 'contains',
-                    'value' => 'elasticsearch'
-                ],
-                [
-                    'condition' => 'OR',
-                    'rules' => [
-                        [
-                            'field' => 'message',
-                            'type' => 'string',
-                            'operator' => 'equal',
-                            'value' => 'this is a test'
-                        ],
-                        [
-                            'field' => 'user',
-                            'type' => 'string',
-                            'operator' => 'in',
-                            'value' => ['kimchy', 'elasticsearch']
-                        ]
-                    ]
-                ]
-            ]
-        ];
-
-        $options = [];
-        $options['includeFields'] = ['user'];
-
-        $query = [
-            'bool' => [
-                'must' => [
-                    [
-                        'match' => [
-                            'user' => 'elasticsearch'
-                        ]
-                    ],
-                    [
-                        'bool' => [
-                            'should' => [
-                                [
-                                    'terms' => [
-                                        'user' => ['kimchy', 'elasticsearch']
-                                    ]
-                                ]
-                            ]
-                        ]
-                    ]
-                ]
-            ]
-        ];
-
-        $this->assertEquals($query, Boolbuilder\transform($group, $options));
-    }
-
     public function testExcludeFieldsTransform()
     {
         $group = [
