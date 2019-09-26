@@ -3,10 +3,12 @@ namespace GovHawkDC\Boolbuilder;
 
 use GovHawkDC\Boolbuilder\ES;
 
+const ALL_TYPES = '*';
+const DEFAULT_QB_GROUP = 'QBGroup';
 const NESTED_TYPE_HANDLING_ALLOW = 'allow';
+const NESTED_TYPE_HANDLING_CONDITIONAL = 'conditional';
 const NESTED_TYPE_HANDLING_DENY = 'deny';
 const NESTED_TYPE_HANDLING_EMPTY = 'empty';
-const DEFAULT_QB_GROUP = 'QBGroup';
 
 function handleGroup($group, $options, $parentQB)
 {
@@ -31,6 +33,24 @@ function handleGroup($group, $options, $parentQB)
     // Transition from non-default ancestor "groups" to a different non-default "QB"
     switch ($options['nestedTypeHandling']) {
         case NESTED_TYPE_HANDLING_ALLOW:
+            if (isset($options['typeFuncMap'][$group['QB']])) {
+                $userFunc = $options['typeFuncMap'][$group['QB']];
+                return $userFunc($group, $options);
+            }
+            return $group;
+        case NESTED_TYPE_HANDLING_CONDITIONAL:
+            if (isset($options['nestedTypeTransitionMap'][$parentQB])) {
+                $allowedTypes = $options['nestedTypeTransitionMap'][$parentQB];
+            } elseif (isset($options['nestedTypeTransitionMap'][ALL_TYPES])) {
+                $allowedTypes = $options['nestedTypeTransitionMap'][ALL_TYPES];
+            } else {
+                $allowedTypes = [];
+            }
+            $checkTypes = [ALL_TYPES, $group['QB']];
+            $matches = array_intersect($checkTypes, $allowedTypes);
+            if (empty($matches)) {
+                return [];
+            }
             if (isset($options['typeFuncMap'][$group['QB']])) {
                 $userFunc = $options['typeFuncMap'][$group['QB']];
                 return $userFunc($group, $options);
@@ -78,6 +98,7 @@ function transform($group, $options = [], $maxDepth = 24)
 {
     $defaults = [];
     $defaults['nestedTypeHandling'] = NESTED_TYPE_HANDLING_DENY;
+    $defaults['nestedTypeTransitionMap'] = [];
     $options = array_merge($defaults, $options);
     return transformGroup($group, $options, DEFAULT_QB_GROUP, 0, $maxDepth);
 }
