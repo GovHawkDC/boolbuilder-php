@@ -61,11 +61,6 @@ function handleRule($group, $rule, $options)
 
 function isRuleExcluded($group, $rule, $options)
 {
-    if (isset($options['includeFields']) &&
-        !in_array($rule['field'], $options['includeFields'], true)
-    ) {
-        return true;
-    }
     if (isset($options['excludeFields']) &&
         in_array($rule['field'], $options['excludeFields'], true)
     ) {
