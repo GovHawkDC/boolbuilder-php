@@ -6,12 +6,12 @@ use GovHawkDC\Boolbuilder\ES;
 const NESTED_TYPE_HANDLING_ALLOW = 'allow';
 const NESTED_TYPE_HANDLING_DENY = 'deny';
 const NESTED_TYPE_HANDLING_EMPTY = 'empty';
-const DEFAULT_QB = 'QBGroup';
+const DEFAULT_QB_GROUP = 'QBGroup';
 
 function handleGroup($group, $options, $parentQB)
 {
     // No user funcs for default "QB"
-    if (!isset($group['QB']) || $group['QB'] === DEFAULT_QB) {
+    if (!isset($group['QB']) || $group['QB'] === DEFAULT_QB_GROUP) {
         // Current $group w/ default "QB" inherits $parentQB
         $group['QB'] = $parentQB;
         return $group;
@@ -21,7 +21,7 @@ function handleGroup($group, $options, $parentQB)
         return $group;
     }
     // Transition from default ancestor "groups" to non-default "QB"
-    if ($parentQB === DEFAULT_QB) {
+    if ($parentQB === DEFAULT_QB_GROUP) {
         if (isset($options['typeFuncMap'][$group['QB']])) {
             $userFunc = $options['typeFuncMap'][$group['QB']];
             return $userFunc($group, $options);
@@ -84,7 +84,7 @@ function transform($group, $options = [], $maxDepth = 24)
     $defaults = [];
     $defaults['nestedTypeHandling'] = NESTED_TYPE_HANDLING_DENY;
     $options = array_merge($defaults, $options);
-    return transformGroup($group, $options, DEFAULT_QB, 0, $maxDepth);
+    return transformGroup($group, $options, DEFAULT_QB_GROUP, 0, $maxDepth);
 }
 
 function transformGroup($group, $options, $parentQB, $depth, $maxDepth)
