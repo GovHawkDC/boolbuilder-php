@@ -666,6 +666,131 @@ final class IndexTest extends TestCase
         $this->assertEquals($query, Boolbuilder\transform($group, $options));
     }
 
+    public function testConditionalNestedCustomTypeTransform()
+    {
+        $group = [
+            'QB' => 'Chat',
+            'condition' => 'AND',
+            'rules' => [
+                [
+                    'field' => 'user',
+                    'type' => 'string',
+                    'operator' => 'contains',
+                    'value' => 'elasticsearch'
+                ],
+                [
+                    'QB' => 'Message',
+                    'condition' => 'OR',
+                    'rules' => [
+                        [
+                            'field' => 'message',
+                            'type' => 'string',
+                            'operator' => 'equal',
+                            'value' => 'this is a test'
+                        ]
+                    ]
+                ],
+                [
+                    'QB' => 'Post',
+                    'condition' => 'OR',
+                    'rules' => [
+                        [
+                            'field' => 'content',
+                            'type' => 'string',
+                            'operator' => 'equal',
+                            'value' => 'hello world'
+                        ]
+                    ]
+                ]
+            ]
+        ];
+
+        $options = [];
+        $options['nestedTypeHandling'] = Boolbuilder\NESTED_TYPE_HANDLING_CONDITIONAL;
+        // Not handling "Post", so that should be empty
+        $options['nestedTypeTransitionMap'] = [];
+        $options['nestedTypeTransitionMap']['Chat'] = ['Message'];
+        $options['typeFuncMap'] = [];
+        $options['typeFuncMap']['Chat'] = function ($group, $options) {
+            return [
+                'QB' => 'Chat',
+                'condition' => 'AND',
+                'rules' => [
+                    [
+                        'field' => 'app',
+                        'type' => 'string',
+                        'operator' => 'in',
+                        'value' => ['video', 'audio']
+                    ],
+                    $group
+                ]
+            ];
+        };
+        $options['typeFuncMap']['Message'] = function ($group, $options) {
+            return [
+                'QB' => 'Message',
+                'condition' => 'AND',
+                'rules' => [
+                    [
+                        'field' => 'app',
+                        'type' => 'string',
+                        'operator' => 'in',
+                        'value' => ['blog']
+                    ],
+                    $group
+                ]
+            ];
+        };
+
+        $nestedQuery = [
+            'bool' => [
+                'must' => [
+                    [
+                        'terms' => [
+                            'app' => ['blog']
+                        ]
+                    ],
+                    [
+                        'bool' => [
+                            'should' => [
+                                [
+                                    'match_phrase' => [
+                                        'message' => 'this is a test'
+                                    ]
+                                ]
+                            ]
+                        ]
+                    ]
+                ]
+            ]
+        ];
+        $query = [
+            'bool' => [
+                'must' => [
+                    [
+                        'terms' => [
+                            'app' => ['video', 'audio']
+                        ]
+                    ],
+                    [
+                        'bool' => [
+                            'must' => [
+                                [
+                                    'match' => [
+                                        'user' => 'elasticsearch'
+                                    ]
+                                ],
+                                $nestedQuery
+                            ]
+                        ]
+                    ]
+                ]
+            ]
+        ];
+
+        $this->assertEquals($query, Boolbuilder\transform($group, $options));
+    }
+
     public function testEmptyNestedCustomTypeTransform()
     {
         $group = [
