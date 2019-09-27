@@ -252,6 +252,33 @@ final class ESTest extends TestCase
         $this->assertEquals('must', ES\getClause($group, $rule));
     }
 
+    public function testMustNotClause()
+    {
+        $group = [];
+        $group['condition'] = 'NOT';
+
+        // NOTE: $rule is actually the shape of a "group"
+        $rule = [];
+        $rule['condition'] = 'OR';
+        $rule['rules'] = [];
+
+        $this->assertEquals('must_not', ES\getClause($group, $rule));
+    }
+
+    public function testMustNotNegativeClause()
+    {
+        $group = [];
+        $group['condition'] = 'NOT';
+
+        $rule = [];
+        $rule['field'] = 'user';
+        $rule['operator'] = 'not_equal';
+        $rule['type'] = 'string';
+        $rule['value'] = 'elasticsearch';
+
+        $this->assertEquals('must', ES\getClause($group, $rule));
+    }
+
     public function testUnknownConditionClause()
     {
         $this->expectException(\Exception::class);
