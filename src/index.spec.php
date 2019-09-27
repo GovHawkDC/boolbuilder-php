@@ -98,6 +98,155 @@ final class IndexTest extends TestCase
         $this->assertEquals($query, Boolbuilder\transform($group));
     }
 
+    public function testSimpleMustNotNestedTransform()
+    {
+        $group = [
+            'condition' => 'AND',
+            'rules' => [
+                [
+                    'field' => 'user',
+                    'type' => 'string',
+                    'operator' => 'contains',
+                    'value' => 'elasticsearch'
+                ],
+                [
+                    'condition' => 'NOT',
+                    'rules' => [
+                        [
+                            'condition' => 'AND',
+                            'rules' => [
+                                [
+                                    'field' => 'message',
+                                    'type' => 'string',
+                                    'operator' => 'equal',
+                                    'value' => 'this is a test'
+                                ],
+                            ]
+                        ],
+                        [
+                            'field' => 'user',
+                            'type' => 'string',
+                            'operator' => 'in',
+                            'value' => ['kimchy', 'elasticsearch']
+                        ]
+                    ]
+                ]
+            ]
+        ];
+
+        $query = [
+            'bool' => [
+                'must' => [
+                    [
+                        'match' => [
+                            'user' => 'elasticsearch'
+                        ]
+                    ],
+                    [
+                        'bool' => [
+                            'must_not' => [
+                                [
+                                    'bool' => [
+                                        'must' => [
+                                            [
+                                                'match_phrase' => [
+                                                    'message' => 'this is a test'
+                                                ]
+                                            ]
+                                        ]
+                                    ]
+                                ],
+                                [
+                                    'terms' => [
+                                        'user' => ['kimchy', 'elasticsearch']
+                                    ]
+                                ]
+                            ]
+                        ]
+                    ]
+                ]
+            ]
+        ];
+
+        $this->assertEquals($query, Boolbuilder\transform($group));
+    }
+
+    public function testSimpleNegativeMustNotNestedTransform()
+    {
+        $group = [
+            'condition' => 'AND',
+            'rules' => [
+                [
+                    'field' => 'user',
+                    'type' => 'string',
+                    'operator' => 'contains',
+                    'value' => 'elasticsearch'
+                ],
+                [
+                    'condition' => 'NOT',
+                    'rules' => [
+                        [
+                            'condition' => 'AND',
+                            'rules' => [
+                                [
+                                    'field' => 'message',
+                                    'type' => 'string',
+                                    'operator' => 'equal',
+                                    'value' => 'this is a test'
+                                ],
+                            ]
+                        ],
+                        [
+                            'field' => 'user',
+                            'type' => 'string',
+                            // This part...
+                            'operator' => 'not_in',
+                            'value' => ['kimchy', 'elasticsearch']
+                        ]
+                    ]
+                ]
+            ]
+        ];
+
+        $query = [
+            'bool' => [
+                'must' => [
+                    [
+                        'match' => [
+                            'user' => 'elasticsearch'
+                        ]
+                    ],
+                    [
+                        'bool' => [
+                            'must_not' => [
+                                [
+                                    'bool' => [
+                                        'must' => [
+                                            [
+                                                'match_phrase' => [
+                                                    'message' => 'this is a test'
+                                                ]
+                                            ]
+                                        ]
+                                    ]
+                                ]
+                            ],
+                            'must' => [
+                                [
+                                    'terms' => [
+                                        'user' => ['kimchy', 'elasticsearch']
+                                    ]
+                                ]
+                            ]
+                        ]
+                    ]
+                ]
+            ]
+        ];
+
+        $this->assertEquals($query, Boolbuilder\transform($group));
+    }
+
     public function testExcludeFieldsTransform()
     {
         $group = [

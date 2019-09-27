@@ -15,6 +15,13 @@ function getClause($group, $rule)
                 return 'must_not';
             }
             return 'must';
+        // This is not supported by the UI (yet) but nice to have for some custom
+        // transform stuff...
+        case 'NOT':
+            if (!isset($rule['rules']) && isNegativeOperator($rule)) {
+                return 'must';
+            }
+            return 'must_not';
         default:
             $e = sprintf('Unknown condition "%s"', strval($condition));
             throw new \Exception($e);
