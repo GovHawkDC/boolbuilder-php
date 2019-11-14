@@ -24,20 +24,12 @@ function handleGroup($group, $options, $parentQB)
     }
     // Transition from default ancestor "groups" to non-default "QB"
     if ($parentQB === DEFAULT_QB_GROUP) {
-        if (isset($options['typeFuncMap'][$group['QB']])) {
-            $userFunc = $options['typeFuncMap'][$group['QB']];
-            return $userFunc($group, $options);
-        }
-        return $group;
+        return applyTypeFunc($group, $options);
     }
     // Transition from non-default ancestor "groups" to a different non-default "QB"
     switch ($options['nestedTypeHandling']) {
         case NESTED_TYPE_HANDLING_ALLOW:
-            if (isset($options['typeFuncMap'][$group['QB']])) {
-                $userFunc = $options['typeFuncMap'][$group['QB']];
-                return $userFunc($group, $options);
-            }
-            return $group;
+            return applyTypeFunc($group, $options);
         case NESTED_TYPE_HANDLING_CONDITIONAL:
             if (isset($options['nestedTypeTransitionMap'][$parentQB])) {
                 $allowedTypes = $options['nestedTypeTransitionMap'][$parentQB];
@@ -51,11 +43,7 @@ function handleGroup($group, $options, $parentQB)
             if (empty($matches)) {
                 return [];
             }
-            if (isset($options['typeFuncMap'][$group['QB']])) {
-                $userFunc = $options['typeFuncMap'][$group['QB']];
-                return $userFunc($group, $options);
-            }
-            return $group;
+            return applyTypeFunc($group, $options);
         case NESTED_TYPE_HANDLING_DENY:
             throw new \Exception('Unable to process nested group of different custom type');
         case NESTED_TYPE_HANDLING_EMPTY:
@@ -63,6 +51,18 @@ function handleGroup($group, $options, $parentQB)
         default:
             throw new \Exception('Unknown nestedTypeHandling option value');
     }
+}
+
+function applyTypeFunc($group, $options)
+{
+    if (empty($group['rules'])) {
+        return $group;
+    }
+    if (isset($options['typeFuncMap'][$group['QB']])) {
+        $userFunc = $options['typeFuncMap'][$group['QB']];
+        return $userFunc($group, $options);
+    }
+    return $group;
 }
 
 function handleRule($group, $rule, $options)
