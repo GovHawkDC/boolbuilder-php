@@ -182,11 +182,9 @@ function getQueryHelper($group, $rule)
                     ]
                 ];
             }
+            // This is purposely flexible to allow for all the options available.
             return [
-                'query_string' => [
-                    'query' => $rule['value'][0],
-                    'default_operator' => $rule['value'][1]
-                ]
+                'query_string' => $rule['value']
             ];
         default:
             $e = sprintf('Unknown operator "%s"', strval($rule['operator']));
@@ -200,7 +198,7 @@ function isBoostesque($rule)
         return false;
     }
     // @see https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-wildcard-query.html
-    if (is_string($rule['value'][0]) && is_numeric($rule['value'][1])) {
+    if (isset($rule['value'][0]) && is_string($rule['value'][0]) && is_numeric($rule['value'][1])) {
         return true;
     }
     return false;
