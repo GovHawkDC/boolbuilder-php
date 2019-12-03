@@ -1238,4 +1238,55 @@ final class IndexTest extends TestCase
 
         Boolbuilder\transform($group, [], 2);
     }
+
+    public function testSimpleAllRulesUserTransform()
+    {
+        $group = [
+            'QB' => 'Chat',
+            'condition' => 'OR',
+            'rules' => [
+                [
+                    'field' => 'user',
+                    'type' => 'string',
+                    'operator' => 'contains',
+                    'value' => 'elasticsearch'
+                ],
+                [
+                    'field' => 'message',
+                    'type' => 'string',
+                    'operator' => 'equal',
+                    'value' => 'this is a test'
+                ]
+            ]
+        ];
+
+        $query = [
+            'bool' => [
+                'should' => [
+                    [
+                        'wildcard' => [
+                            'user' => 'elasticsearch*'
+                        ]
+                    ],
+                    [
+                        'wildcard' => [
+                            'message' => 'this is a test*'
+                        ]
+                    ]
+                ]
+            ]
+        ];
+
+        $options = [];
+        $options['ruleFuncMap'] = [];
+        $options['ruleFuncMap']['Chat'] = [];
+        $options['ruleFuncMap']['Chat']['*'] = function ($group, $rule, $options) {
+            if (is_string($rule['value'])) {
+                $rule['value'] = $rule['value'] . '*';
+            }
+            return $rule;
+        };
+
+        $this->assertEquals($query, Boolbuilder\transform($group, $options));
+    }
 }
