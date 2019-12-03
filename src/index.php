@@ -3,6 +3,7 @@ namespace GovHawkDC\Boolbuilder;
 
 use GovHawkDC\Boolbuilder\ES;
 
+const ALL_RULES = '*';
 const ALL_TYPES = '*';
 const DEFAULT_QB_GROUP = 'QBGroup';
 const NESTED_TYPE_HANDLING_ALLOW = 'allow';
@@ -74,6 +75,11 @@ function handleRule($group, $rule, $options)
     // Apply user func to $rule if available
     if (isset($options['ruleFuncMap'][$group['QB']][$rule['field']])) {
         $userFunc = $options['ruleFuncMap'][$group['QB']][$rule['field']];
+        return $userFunc($group, $rule, $options);
+    }
+    // Apply user func that applies to any $rule in a specific QB type.
+    if (isset($options['ruleFuncMap'][$group['QB']][ALL_RULES])) {
+        $userFunc = $options['ruleFuncMap'][$group['QB']][ALL_RULES];
         return $userFunc($group, $rule, $options);
     }
     return $rule;
