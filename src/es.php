@@ -107,6 +107,13 @@ function getQueryHelper($group, $rule)
             ];
         case 'equal':
         case 'not_equal':
+            if (is_bool($rule['value'])) {
+                return [
+                    'term' => [
+                        $rule['field'] => boolval($rule['value'])
+                    ]
+                ];
+            }
             return [
                 'match_phrase' => [
                     $rule['field'] => $rule['value']
