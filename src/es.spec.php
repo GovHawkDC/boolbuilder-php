@@ -120,6 +120,21 @@ final class ESTest extends TestCase
         $this->assertEquals($query, ES\getQueryHelper([], $rule));
     }
 
+    public function testBooleanTypeQuery()
+    {
+        $rule = [];
+        $rule['field'] = 'is_published';
+        $rule['operator'] = 'equal';
+        $rule['type'] = 'boolean';
+        $rule['value'] = true;
+
+        $query = [];
+        $query['term'] = [];
+        $query['term']['is_published'] = true;
+
+        $this->assertEquals($query, ES\getQueryHelper([], $rule));
+    }
+
     /**
      * @see https://www.elastic.co/guide/en/elasticsearch/reference/2.0/query-dsl-terms-query.html
      */
