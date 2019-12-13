@@ -135,6 +135,9 @@ function transformRules($group, $options, $depth, $maxDepth)
     $clauses = [];
     foreach ($group['rules'] as $rule) {
         $rule = handleRule($group, $rule, $options);
+        if (empty($rule)) {
+            continue;
+        }
         $query = transformRule($group, $rule, $options, $depth, $maxDepth);
         if (empty($query)) {
             continue;
