@@ -10,21 +10,22 @@ const NESTED_TYPE_HANDLING_ALLOW = 'allow';
 const NESTED_TYPE_HANDLING_CONDITIONAL = 'conditional';
 const NESTED_TYPE_HANDLING_DENY = 'deny';
 const NESTED_TYPE_HANDLING_EMPTY = 'empty';
+const PARENT_REF = '__$PARENT_REF__';
 
-function handleGroup($group, $options, $parentQB)
+function handleGroup($group, $options)
 {
     // No user funcs for default "QB"
     if (!isset($group['QB']) || $group['QB'] === DEFAULT_QB_GROUP) {
-        // Current $group w/ default "QB" inherits $parentQB
-        $group['QB'] = $parentQB;
+        // Current $group w/ default "QB" inherits parent's "QB"
+        $group['QB'] = $group[PARENT_REF]['QB'];
         return $group;
     }
     // No user funcs for repeating "QB" (e.g., child $group with same "QB")
-    if ($group['QB'] === $parentQB) {
+    if ($group['QB'] === $group[PARENT_REF]['QB']) {
         return $group;
     }
     // Transition from default ancestor "groups" to non-default "QB"
-    if ($parentQB === DEFAULT_QB_GROUP) {
+    if ($group[PARENT_REF]['QB'] === DEFAULT_QB_GROUP) {
         return applyTypeFunc($group, $options);
     }
     // Transition from non-default ancestor "groups" to a different non-default "QB"
@@ -32,8 +33,8 @@ function handleGroup($group, $options, $parentQB)
         case NESTED_TYPE_HANDLING_ALLOW:
             return applyTypeFunc($group, $options);
         case NESTED_TYPE_HANDLING_CONDITIONAL:
-            if (isset($options['nestedTypeTransitionMap'][$parentQB])) {
-                $allowedTypes = $options['nestedTypeTransitionMap'][$parentQB];
+            if (isset($options['nestedTypeTransitionMap'][$group[PARENT_REF]['QB']])) {
+                $allowedTypes = $options['nestedTypeTransitionMap'][$group[PARENT_REF]['QB']];
             } elseif (isset($options['nestedTypeTransitionMap'][ALL_TYPES])) {
                 $allowedTypes = $options['nestedTypeTransitionMap'][ALL_TYPES];
             } else {
@@ -101,6 +102,14 @@ function isRuleExcluded($group, $rule, $options)
     return false;
 }
 
+function makeInitialParent()
+{
+    $parent = [];
+    $parent['QB'] = DEFAULT_QB_GROUP;
+    $parent['rules'] = [];
+    return $parent;
+}
+
 function transform($group, $options = [], $maxDepth = 24)
 {
     $defaults = [];
@@ -109,15 +118,16 @@ function transform($group, $options = [], $maxDepth = 24)
     $defaults['nestedTypeHandling'] = NESTED_TYPE_HANDLING_DENY;
     $defaults['nestedTypeTransitionMap'] = [];
     $options = array_merge($defaults, $options);
-    return transformGroup($group, $options, DEFAULT_QB_GROUP, 0, $maxDepth);
+    return transformGroup($group, $options, makeInitialParent(), 0, $maxDepth);
 }
 
-function transformGroup($group, $options, $parentQB, $depth, $maxDepth)
+function transformGroup($group, $options, $parent, $depth, $maxDepth)
 {
     if ($depth > $maxDepth) {
         throw new \Exception('Max depth exceeded');
     }
-    $group = handleGroup($group, $options, $parentQB);
+    $group[PARENT_REF] = $parent;
+    $group = handleGroup($group, $options);
     if (empty($group['rules'])) {
         return [];
     }
@@ -127,7 +137,7 @@ function transformGroup($group, $options, $parentQB, $depth, $maxDepth)
 function transformRule($group, $rule, $options, $depth, $maxDepth)
 {
     if (isset($rule['rules'])) {
-        return transformGroup($rule, $options, $group['QB'], $depth + 1, $maxDepth);
+        return transformGroup($rule, $options, $group, $depth + 1, $maxDepth);
     }
     if (isRuleExcluded($group, $rule, $options)) {
         return [];
