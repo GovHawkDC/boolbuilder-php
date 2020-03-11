@@ -102,12 +102,13 @@ function isRuleExcluded($group, $rule, $options)
     return false;
 }
 
-function makeInitialParent()
+function makeInitialParent($group)
 {
     $parent = [];
     $parent['QB'] = DEFAULT_QB_GROUP;
     $parent['condition'] = 'OR';
-    $parent['rules'] = [];
+    $parent['rules'] = [$group];
+    $parent[PARENT_REF] = $parent;
     return $parent;
 }
 
@@ -119,7 +120,7 @@ function transform($group, $options = [], $maxDepth = 24)
     $defaults['nestedTypeHandling'] = NESTED_TYPE_HANDLING_DENY;
     $defaults['nestedTypeTransitionMap'] = [];
     $options = array_merge($defaults, $options);
-    return transformGroup($group, $options, makeInitialParent(), 0, $maxDepth);
+    return transformGroup($group, $options, makeInitialParent($group), 0, $maxDepth);
 }
 
 function transformGroup($group, $options, $parent, $depth, $maxDepth)
