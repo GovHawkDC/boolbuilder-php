@@ -72,6 +72,11 @@ function handleRule($group, $rule, $options)
     if (isset($rule['rules'])) {
         return $rule;
     }
+    // Apply user func for field on any type if available.
+    if (isset($options['ruleFuncMap'][ALL_TYPES][$rule['field']])) {
+        $userFunc = $options['ruleFuncMap'][ALL_TYPES][$rule['field']];
+        return $userFunc($group, $rule, $options);
+    }
     // Apply user func to $rule if available
     if (isset($options['ruleFuncMap'][$group['QB']][$rule['field']])) {
         $userFunc = $options['ruleFuncMap'][$group['QB']][$rule['field']];
