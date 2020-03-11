@@ -1360,4 +1360,76 @@ final class IndexTest extends TestCase
         ];
         $this->assertEquals($query, Boolbuilder\transform($group, $options));
     }
+
+    public function testParentReferences()
+    {
+        $group = [
+            'QB' => 'Chat',
+            'condition' => 'AND',
+            'rules' => [
+                [
+                    'field' => 'user',
+                    'type' => 'string',
+                    'operator' => 'contains',
+                    'value' => 'elasticsearch'
+                ],
+                [
+                    'QB' => 'Message',
+                    'condition' => 'AND',
+                    'rules' => [
+                        [
+                            'field' => 'message',
+                            'type' => 'string',
+                            'operator' => 'equal',
+                            'value' => 'this is a test'
+                        ]
+                    ]
+                ]
+            ]
+        ];
+
+        // This is a dumb example anyway, but note that initial parent condition is "OR".
+        $flipParentCondition = function ($group, $options) {
+            switch (strtoupper($group[Boolbuilder\PARENT_REF]['condition'])) {
+                case 'AND':
+                    $group['condition'] = 'OR';
+                    return $group;
+                case 'OR':
+                    $group['condition'] = 'AND';
+                    return $group;
+                default:
+                    return $group;
+            }
+        };
+        $options = [];
+        $options['nestedTypeHandling'] = Boolbuilder\NESTED_TYPE_HANDLING_ALLOW;
+        $options['typeFuncMap'] = [];
+        $options['typeFuncMap']['Chat'] = $flipParentCondition;
+        $options['typeFuncMap']['Message'] = $flipParentCondition;
+
+        $query = [
+            'bool' => [
+                'must' => [
+                    [
+                        'match' => [
+                            'user' => 'elasticsearch'
+                        ]
+                    ],
+                    [
+                        'bool' => [
+                            'should' => [
+                                [
+                                    'match_phrase' => [
+                                        'message' => 'this is a test'
+                                    ]
+                                ]
+                            ]
+                        ]
+                    ]
+                ]
+            ]
+        ];
+
+        $this->assertEquals($query, Boolbuilder\transform($group, $options));
+    }
 }
