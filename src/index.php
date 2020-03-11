@@ -106,6 +106,7 @@ function makeInitialParent()
 {
     $parent = [];
     $parent['QB'] = DEFAULT_QB_GROUP;
+    $parent['condition'] = 'OR';
     $parent['rules'] = [];
     return $parent;
 }
