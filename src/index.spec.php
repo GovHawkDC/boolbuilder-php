@@ -401,19 +401,22 @@ final class IndexTest extends TestCase
 
         $options = [];
         $options['typeFuncMap'] = [];
-        $options['typeFuncMap']['Chat'] = function ($group, $options) {
+        $options['typeFuncMap']['Chat'] = function ($group, $options, $context) {
             return [
-                'QB' => 'Chat',
-                'condition' => 'AND',
-                'rules' => [
-                    [
-                        'field' => 'app',
-                        'type' => 'string',
-                        'operator' => 'in',
-                        'value' => ['video', 'audio']
-                    ],
-                    $group
-                ]
+                [
+                    'QB' => 'Chat',
+                    'condition' => 'AND',
+                    'rules' => [
+                        [
+                            'field' => 'app',
+                            'type' => 'string',
+                            'operator' => 'in',
+                            'value' => ['video', 'audio']
+                        ],
+                        $group
+                    ]
+                ],
+                $context
             ];
         };
 
@@ -494,13 +497,13 @@ final class IndexTest extends TestCase
         $options = [];
         $options['ruleFuncMap'] = ['Chat'];
         $options['ruleFuncMap']['Chat'] = [];
-        $options['ruleFuncMap']['Chat']['user'] = function ($group, $rule, $options) {
+        $options['ruleFuncMap']['Chat']['user'] = function ($group, $rule, $options, $context) {
             if (is_string($rule['value'])) {
                 $rule['value'] =  strtoupper($rule['value']);
             } elseif (is_array($rule['value'])) {
                 $rule['value'] = array_map('strtoupper', $rule['value']);
             }
-            return $rule;
+            return [$rule, $context];
         };
 
         $query = [
@@ -605,45 +608,51 @@ final class IndexTest extends TestCase
 
         $options = [];
         $options['typeFuncMap'] = [];
-        $options['typeFuncMap']['Chat'] = function ($group, $options) {
+        $options['typeFuncMap']['Chat'] = function ($group, $options, $context) {
             return [
-                'QB' => 'Chat',
-                'condition' => 'AND',
-                'rules' => [
-                    [
-                        'field' => 'app',
-                        'type' => 'string',
-                        'operator' => 'in',
-                        'value' => ['video', 'audio']
-                    ],
-                    $group
-                ]
+                [
+                    'QB' => 'Chat',
+                    'condition' => 'AND',
+                    'rules' => [
+                        [
+                            'field' => 'app',
+                            'type' => 'string',
+                            'operator' => 'in',
+                            'value' => ['video', 'audio']
+                        ],
+                        $group
+                    ]
+                ],
+                $context
             ];
         };
-        $options['typeFuncMap']['Message'] = function ($group, $options) {
+        $options['typeFuncMap']['Message'] = function ($group, $options, $context) {
             return [
-                'QB' => 'Message',
-                'condition' => 'AND',
-                'rules' => [
-                    [
-                        'field' => 'app',
-                        'type' => 'string',
-                        'operator' => 'in',
-                        'value' => ['blog']
-                    ],
-                    $group
-                ]
+                [
+                    'QB' => 'Message',
+                    'condition' => 'AND',
+                    'rules' => [
+                        [
+                            'field' => 'app',
+                            'type' => 'string',
+                            'operator' => 'in',
+                            'value' => ['blog']
+                        ],
+                        $group
+                    ]
+                ],
+                $context
             ];
         };
         $options['ruleFuncMap'] = ['Chat'];
         $options['ruleFuncMap']['Chat'] = [];
-        $options['ruleFuncMap']['Chat']['user'] = function ($group, $rule, $options) {
+        $options['ruleFuncMap']['Chat']['user'] = function ($group, $rule, $options, $context) {
             if (is_string($rule['value'])) {
                 $rule['value'] =  strtoupper($rule['value']);
             } elseif (is_array($rule['value'])) {
                 $rule['value'] = array_map('strtoupper', $rule['value']);
             }
-            return $rule;
+            return [$rule, $context];
         };
 
         $query = [
@@ -735,34 +744,40 @@ final class IndexTest extends TestCase
         $options = [];
         $options['nestedTypeHandling'] = Boolbuilder\NESTED_TYPE_HANDLING_ALLOW;
         $options['typeFuncMap'] = [];
-        $options['typeFuncMap']['Chat'] = function ($group, $options) {
+        $options['typeFuncMap']['Chat'] = function ($group, $options, $context) {
             return [
-                'QB' => 'Chat',
-                'condition' => 'AND',
-                'rules' => [
-                    [
-                        'field' => 'app',
-                        'type' => 'string',
-                        'operator' => 'in',
-                        'value' => ['video', 'audio']
-                    ],
-                    $group
-                ]
+                [
+                    'QB' => 'Chat',
+                    'condition' => 'AND',
+                    'rules' => [
+                        [
+                            'field' => 'app',
+                            'type' => 'string',
+                            'operator' => 'in',
+                            'value' => ['video', 'audio']
+                        ],
+                        $group
+                    ]
+                ],
+                $context
             ];
         };
-        $options['typeFuncMap']['Message'] = function ($group, $options) {
+        $options['typeFuncMap']['Message'] = function ($group, $options, $context) {
             return [
-                'QB' => 'Message',
-                'condition' => 'AND',
-                'rules' => [
-                    [
-                        'field' => 'app',
-                        'type' => 'string',
-                        'operator' => 'in',
-                        'value' => ['blog']
-                    ],
-                    $group
-                ]
+                [
+                    'QB' => 'Message',
+                    'condition' => 'AND',
+                    'rules' => [
+                        [
+                            'field' => 'app',
+                            'type' => 'string',
+                            'operator' => 'in',
+                            'value' => ['blog']
+                        ],
+                        $group
+                    ]
+                ],
+                $context
             ];
         };
 
@@ -860,34 +875,40 @@ final class IndexTest extends TestCase
         $options['nestedTypeTransitionMap'] = [];
         $options['nestedTypeTransitionMap']['Chat'] = ['Message'];
         $options['typeFuncMap'] = [];
-        $options['typeFuncMap']['Chat'] = function ($group, $options) {
+        $options['typeFuncMap']['Chat'] = function ($group, $options, $context) {
             return [
-                'QB' => 'Chat',
-                'condition' => 'AND',
-                'rules' => [
-                    [
-                        'field' => 'app',
-                        'type' => 'string',
-                        'operator' => 'in',
-                        'value' => ['video', 'audio']
-                    ],
-                    $group
-                ]
+                [
+                    'QB' => 'Chat',
+                    'condition' => 'AND',
+                    'rules' => [
+                        [
+                            'field' => 'app',
+                            'type' => 'string',
+                            'operator' => 'in',
+                            'value' => ['video', 'audio']
+                        ],
+                        $group
+                    ]
+                ],
+                $context
             ];
         };
-        $options['typeFuncMap']['Message'] = function ($group, $options) {
+        $options['typeFuncMap']['Message'] = function ($group, $options, $context) {
             return [
-                'QB' => 'Message',
-                'condition' => 'AND',
-                'rules' => [
-                    [
-                        'field' => 'app',
-                        'type' => 'string',
-                        'operator' => 'in',
-                        'value' => ['blog']
-                    ],
-                    $group
-                ]
+                [
+                    'QB' => 'Message',
+                    'condition' => 'AND',
+                    'rules' => [
+                        [
+                            'field' => 'app',
+                            'type' => 'string',
+                            'operator' => 'in',
+                            'value' => ['blog']
+                        ],
+                        $group
+                    ]
+                ],
+                $context
             ];
         };
 
@@ -987,35 +1008,41 @@ final class IndexTest extends TestCase
         $options = [];
         $options['nestedTypeHandling'] = Boolbuilder\NESTED_TYPE_HANDLING_EMPTY;
         $options['typeFuncMap'] = [];
-        $options['typeFuncMap']['Chat'] = function ($group, $options) {
+        $options['typeFuncMap']['Chat'] = function ($group, $options, $context) {
             return [
-                'QB' => 'Chat',
-                'condition' => 'AND',
-                'rules' => [
-                    [
-                        'field' => 'app',
-                        'type' => 'string',
-                        'operator' => 'in',
-                        'value' => ['video', 'audio']
-                    ],
-                    $group
-                ]
+                [
+                    'QB' => 'Chat',
+                    'condition' => 'AND',
+                    'rules' => [
+                        [
+                            'field' => 'app',
+                            'type' => 'string',
+                            'operator' => 'in',
+                            'value' => ['video', 'audio']
+                        ],
+                        $group
+                    ]
+                ],
+                $context
             ];
         };
         // NOTE: This should go unused when "Message" is nested
-        $options['typeFuncMap']['Message'] = function ($group, $options) {
+        $options['typeFuncMap']['Message'] = function ($group, $options, $context) {
             return [
-                'QB' => 'Message',
-                'condition' => 'AND',
-                'rules' => [
-                    [
-                        'field' => 'app',
-                        'type' => 'string',
-                        'operator' => 'in',
-                        'value' => ['blog']
-                    ],
-                    $group
-                ]
+                [
+                    'QB' => 'Message',
+                    'condition' => 'AND',
+                    'rules' => [
+                        [
+                            'field' => 'app',
+                            'type' => 'string',
+                            'operator' => 'in',
+                            'value' => ['blog']
+                        ],
+                        $group
+                    ]
+                ],
+                $context
             ];
         };
 
@@ -1100,49 +1127,58 @@ final class IndexTest extends TestCase
         $options['nestedTypeHandling'] = Boolbuilder\NESTED_TYPE_HANDLING_ALLOW;
         $options['ruleFuncMap'] = [];
         $options['ruleFuncMap']['Chat'] = [];
-        $options['ruleFuncMap']['Chat']['ref'] = function ($group, $rule, $options) {
+        $options['ruleFuncMap']['Chat']['ref'] = function ($group, $rule, $options, $context) {
             return [
-                'QB' => 'Message',
-                'condition' => 'OR',
-                'rules' => [
-                    [
-                        'field' => 'message',
-                        'type' => 'string',
-                        'operator' => 'equal',
-                        'value' => 'this is a test'
+                [
+                    'QB' => 'Message',
+                    'condition' => 'OR',
+                    'rules' => [
+                        [
+                            'field' => 'message',
+                            'type' => 'string',
+                            'operator' => 'equal',
+                            'value' => 'this is a test'
+                        ]
                     ]
-                ]
+                ],
+                $context
             ];
         };
         $options['typeFuncMap'] = [];
-        $options['typeFuncMap']['Chat'] = function ($group, $options) {
+        $options['typeFuncMap']['Chat'] = function ($group, $options, $context) {
             return [
-                'QB' => 'Chat',
-                'condition' => 'AND',
-                'rules' => [
-                    [
-                        'field' => 'app',
-                        'type' => 'string',
-                        'operator' => 'in',
-                        'value' => ['video', 'audio']
-                    ],
-                    $group
-                ]
+                [
+                    'QB' => 'Chat',
+                    'condition' => 'AND',
+                    'rules' => [
+                        [
+                            'field' => 'app',
+                            'type' => 'string',
+                            'operator' => 'in',
+                            'value' => ['video', 'audio']
+                        ],
+                        $group
+                    ]
+                ],
+                $context
             ];
         };
-        $options['typeFuncMap']['Message'] = function ($group, $options) {
+        $options['typeFuncMap']['Message'] = function ($group, $options, $context) {
             return [
-                'QB' => 'Message',
-                'condition' => 'AND',
-                'rules' => [
-                    [
-                        'field' => 'app',
-                        'type' => 'string',
-                        'operator' => 'in',
-                        'value' => ['blog']
-                    ],
-                    $group
-                ]
+                [
+                    'QB' => 'Message',
+                    'condition' => 'AND',
+                    'rules' => [
+                        [
+                            'field' => 'app',
+                            'type' => 'string',
+                            'operator' => 'in',
+                            'value' => ['blog']
+                        ],
+                        $group
+                    ]
+                ],
+                $context
             ];
         };
 
@@ -1280,11 +1316,11 @@ final class IndexTest extends TestCase
         $options = [];
         $options['ruleFuncMap'] = [];
         $options['ruleFuncMap']['Chat'] = [];
-        $options['ruleFuncMap']['Chat']['*'] = function ($group, $rule, $options) {
+        $options['ruleFuncMap']['Chat']['*'] = function ($group, $rule, $options, $context) {
             if (is_string($rule['value'])) {
                 $rule['value'] = $rule['value'] . '*';
             }
-            return $rule;
+            return [$rule, $context];
         };
 
         $this->assertEquals($query, Boolbuilder\transform($group, $options));
@@ -1325,9 +1361,9 @@ final class IndexTest extends TestCase
         $options = [];
         $options['ruleFuncMap'] = [];
         $options['ruleFuncMap']['*'] = [];
-        $options['ruleFuncMap']['*']['user'] = function ($group, $rule, $options) {
+        $options['ruleFuncMap']['*']['user'] = function ($group, $rule, $options, $context) {
             $rule['value'] = strtoupper($rule['value']);
-            return $rule;
+            return [$rule, $context];
         };
 
         $query = [
@@ -1389,16 +1425,16 @@ final class IndexTest extends TestCase
         ];
 
         // This is a dumb example anyway, but note that initial parent condition is "OR".
-        $flipParentCondition = function ($group, $options) {
-            switch (strtoupper($group[Boolbuilder\PARENT_REF]['condition'])) {
+        $flipParentCondition = function ($group, $options, $context) {
+            switch (strtoupper($context['$ref']['$parent']['condition'])) {
                 case 'AND':
                     $group['condition'] = 'OR';
-                    return $group;
+                    return [$group, $context];
                 case 'OR':
                     $group['condition'] = 'AND';
-                    return $group;
+                    return [$group, $context];
                 default:
-                    return $group;
+                    return [$group, $context];
             }
         };
         $options = [];
