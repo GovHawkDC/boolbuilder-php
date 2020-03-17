@@ -1518,7 +1518,6 @@ final class IndexTest extends TestCase
                             'operator' => 'equal',
                             'value' => 'is this a test'
                         ]
-
                     ],
                 ],
                 [
@@ -1544,7 +1543,8 @@ final class IndexTest extends TestCase
             if (in_array($rule['field'], $fieldsOfInterest, true)) {
                 return [$rule, $context];
             }
-            if (isset($context['is_user_considered']) && $context['is_user_considered']) {
+            if (isset($context['$state']['is_user_considered']) &&
+                $context['$state']['is_user_considered']) {
                 if (is_array($rule['value'])) {
                     $rule['value'] = array_map('strtoupper', $rule['value']);
                 } else {
@@ -1554,7 +1554,7 @@ final class IndexTest extends TestCase
             }
             $groupFields = array_column($group['rules'], 'field');
             if (!empty(array_intersect($fieldsOfInterest, $groupFields))) {
-                $context['is_user_considered'] = true;
+                $context['$state']['is_user_considered'] = true;
                 if (is_array($rule['value'])) {
                     $rule['value'] = array_map('strtoupper', $rule['value']);
                 } else {
@@ -1617,6 +1617,120 @@ final class IndexTest extends TestCase
                                 [
                                     'match_phrase' => [
                                         'message' => 'this is a test'
+                                    ]
+                                ]
+                            ]
+                        ]
+                    ]
+                ]
+            ]
+        ];
+        $this->assertEquals($query, Boolbuilder\transform($group, $options));
+    }
+
+    public function testContextStateRefresh()
+    {
+        $group = [
+            'QB' => 'Chat',
+            'condition' => 'AND',
+            'rules' => [
+                [
+                    'field' => 'user',
+                    'type' => 'string',
+                    'operator' => 'contains',
+                    'value' => 'elasticsearch'
+                ],
+                [
+                    'field' => 'message',
+                    'type' => 'string',
+                    'operator' => 'equal',
+                    'value' => 'not allowed'
+                ],
+                [
+                    'field' => 'message',
+                    'type' => 'string',
+                    'operator' => 'equal',
+                    'value' => 'hello...'
+                ],
+                [
+                    'condition' => 'AND',
+                    'rules' => [
+                        [
+                            'field' => 'message',
+                            'type' => 'string',
+                            'operator' => 'equal',
+                            'value' => '...world'
+                        ]
+                    ]
+                ]
+            ]
+        ];
+
+        $options = [];
+        $options['ruleFuncMap'] = [];
+        $options['ruleFuncMap']['Chat'] = [];
+        $options['ruleFuncMap']['Chat']['*'] = function ($group, $rule, $options, $context) {
+            if ($rule['field'] === 'user') {
+                $context['$state']['is_user_considered'] = true;
+                return [$rule, $context];
+            }
+            if (is_string($rule['value']) && strpos($rule['value'], 'not allowed') !== false) {
+                $context['$cmd'] = Boolbuilder\CMD_REFRESH_CONTEXT_STATE;
+                $group = [
+                    'condition' => 'AND',
+                    'rules' => [
+                        [
+                            'field' => 'message',
+                            'type' => 'string',
+                            'operator' => 'equal',
+                            'value' => 'removed'
+                        ]
+                    ]
+                ];
+                return [$group, $context];
+            }
+            if (isset($context['$state']['is_user_considered']) &&
+                $context['$state']['is_user_considered']) {
+                if (is_array($rule['value'])) {
+                    $rule['value'] = array_map('strtoupper', $rule['value']);
+                } else {
+                    $rule['value'] = strtoupper($rule['value']);
+                }
+                return [$rule, $context];
+            }
+            return [$rule, $context];
+        };
+
+        $query = [
+            'bool' => [
+                'must' => [
+                    [
+                        'match' => [
+                            'user' => 'elasticsearch'
+                        ]
+                    ],
+                    [
+                        'bool' => [
+                            'must' => [
+                                [
+                                    'match_phrase' => [
+                                        'message' => 'removed'
+                                    ]
+                                ]
+                            ]
+                        ]
+                    ],
+                    [
+                        'match_phrase' => [
+                            'message' => 'HELLO...'
+                        ]
+                    ],
+                    [
+                        'bool' => [
+                            'must' => [
+                                [
+                                    'match_phrase' => [
+                                        'message' => '...WORLD'
                                     ]
                                 ]
                             ]

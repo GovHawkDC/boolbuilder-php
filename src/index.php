@@ -5,6 +5,7 @@ use GovHawkDC\Boolbuilder\ES;
 
 const ALL_RULES = '*';
 const ALL_TYPES = '*';
+const CMD_REFRESH_CONTEXT_STATE = 'REFRESH_CONTEXT_STATE';
 const DEFAULT_QB_GROUP = 'QBGroup';
 const NESTED_TYPE_HANDLING_ALLOW = 'allow';
 const NESTED_TYPE_HANDLING_CONDITIONAL = 'conditional';
@@ -114,6 +115,8 @@ function transform($group, $options = [], $maxDepth = 24)
     $parent['condition'] = 'OR';
     $parent['rules'] = [$group];
     $context = [];
+    $context['$cmd'] = '';
+    $context['$state'] = [];
     return transformGroup($group, $options, $parent, $context, 0, $maxDepth);
 }
 
@@ -152,7 +155,17 @@ function transformRules($group, $options, $context, $depth, $maxDepth)
         if (empty($rule)) {
             continue;
         }
-        $query = transformRule($group, $rule, $options, $context, $depth, $maxDepth);
+        $cmd = $context['$cmd'];
+        $context['$cmd'] = '';
+        switch ($cmd) {
+            case CMD_REFRESH_CONTEXT_STATE:
+                $ctx = $context;
+                $ctx['$state'] = [];
+                $query = transformRule($group, $rule, $options, $ctx, $depth, $maxDepth);
+                break;
+            default:
+                $query = transformRule($group, $rule, $options, $context, $depth, $maxDepth);
+        }
         if (empty($query)) {
             continue;
         }
