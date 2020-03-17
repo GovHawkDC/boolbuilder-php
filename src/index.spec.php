@@ -1468,4 +1468,163 @@ final class IndexTest extends TestCase
 
         $this->assertEquals($query, Boolbuilder\transform($group, $options));
     }
+
+    public function testContextState()
+    {
+        $group = [
+            'condition' => 'OR',
+            'rules' => [
+                [
+                    'QB' => 'Chat',
+                    'condition' => 'AND',
+                    'rules' => [
+                        [
+                            'condition' => 'AND',
+                            'rules' => [
+                                [
+                                    'field' => 'user',
+                                    'type' => 'string',
+                                    'operator' => 'contains',
+                                    'value' => 'elasticsearch'
+                                ],
+                                [
+                                    'field' => 'message',
+                                    'type' => 'string',
+                                    'operator' => 'equal',
+                                    'value' => 'this is a test'
+                                ],
+                                [
+                                    'condition' => 'OR',
+                                    'rules' => [
+                                        [
+                                            'field' => 'message',
+                                            'type' => 'string',
+                                            'operator' => 'equal',
+                                            'value' => 'hello...'
+                                        ],
+                                        [
+                                            'field' => 'message',
+                                            'type' => 'string',
+                                            'operator' => 'equal',
+                                            'value' => '...world'
+                                        ]
+                                    ]
+                                ]
+                            ]
+                        ],
+                        [
+                            'field' => 'message',
+                            'type' => 'string',
+                            'operator' => 'equal',
+                            'value' => 'is this a test'
+                        ]
+
+                    ],
+                ],
+                [
+                    'QB' => 'Message',
+                    'condition' => 'AND',
+                    'rules' => [
+                        [
+                            'field' => 'message',
+                            'type' => 'string',
+                            'operator' => 'equal',
+                            'value' => 'this is a test'
+                        ]
+                    ]
+                ]
+            ]
+        ];
+
+        $options = [];
+        $options['ruleFuncMap'] = [];
+        $options['ruleFuncMap']['Chat'] = [];
+        $options['ruleFuncMap']['Chat']['*'] = function ($group, $rule, $options, $context) {
+            $fieldsOfInterest = ['user'];
+            if (in_array($rule['field'], $fieldsOfInterest, true)) {
+                return [$rule, $context];
+            }
+            if (isset($context['is_user_considered']) && $context['is_user_considered']) {
+                if (is_array($rule['value'])) {
+                    $rule['value'] = array_map('strtoupper', $rule['value']);
+                } else {
+                    $rule['value'] = strtoupper($rule['value']);
+                }
+                return [$rule, $context];
+            }
+            $groupFields = array_column($group['rules'], 'field');
+            if (!empty(array_intersect($fieldsOfInterest, $groupFields))) {
+                $context['is_user_considered'] = true;
+                if (is_array($rule['value'])) {
+                    $rule['value'] = array_map('strtoupper', $rule['value']);
+                } else {
+                    $rule['value'] = strtoupper($rule['value']);
+                }
+                return [$rule, $context];
+            }
+            return [$rule, $context];
+        };
+
+        $query = [
+            'bool' => [
+                'should' => [
+                    [
+                        'bool' => [
+                            'must' => [
+                                [
+                                    'bool' => [
+                                        'must' => [
+                                            [
+                                                'match' => [
+                                                    'user' => 'elasticsearch'
+                                                ]
+                                            ],
+                                            [
+                                                'match_phrase' => [
+                                                    'message' => 'THIS IS A TEST'
+                                                ]
+                                            ],
+                                            [
+                                                'bool' => [
+                                                    'should' => [
+                                                        [
+                                                            'match_phrase' => [
+                                                                'message' => 'HELLO...'
+                                                            ]
+                                                        ],
+                                                        [
+                                                            'match_phrase' => [
+                                                                'message' => '...WORLD'
+                                                            ]
+                                                        ]
+                                                    ]
+                                                ]
+                                            ]
+                                        ]
+                                    ]
+                                ],
+                                [
+                                    'match_phrase' => [
+                                        'message' => 'is this a test'
+                                    ]
+                                ]
+                            ]
+                        ]
+                    ],
+                    [
+                        'bool' => [
+                            'must' => [
+                                [
+                                    'match_phrase' => [
+                                        'message' => 'this is a test'
+                                    ]
+                                ]
+                            ]
+                        ]
+                    ]
+                ]
+            ]
+        ];
+        $this->assertEquals($query, Boolbuilder\transform($group, $options));
+    }
 }
