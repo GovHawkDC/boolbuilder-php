@@ -1482,16 +1482,16 @@ final class IndexTest extends TestCase
                             'condition' => 'AND',
                             'rules' => [
                                 [
-                                    'field' => 'user',
-                                    'type' => 'string',
-                                    'operator' => 'contains',
-                                    'value' => 'elasticsearch'
-                                ],
-                                [
                                     'field' => 'message',
                                     'type' => 'string',
                                     'operator' => 'equal',
                                     'value' => 'this is a test'
+                                ],
+                                [
+                                    'field' => 'user',
+                                    'type' => 'string',
+                                    'operator' => 'contains',
+                                    'value' => 'elasticsearch'
                                 ],
                                 [
                                     'condition' => 'OR',
@@ -1575,13 +1575,13 @@ final class IndexTest extends TestCase
                                     'bool' => [
                                         'must' => [
                                             [
-                                                'match' => [
-                                                    'user' => 'elasticsearch'
+                                                'match_phrase' => [
+                                                    'message' => 'THIS IS A TEST'
                                                 ]
                                             ],
                                             [
-                                                'match_phrase' => [
-                                                    'message' => 'THIS IS A TEST'
+                                                'match' => [
+                                                    'user' => 'elasticsearch'
                                                 ]
                                             ],
                                             [
