@@ -1289,4 +1289,75 @@ final class IndexTest extends TestCase
 
         $this->assertEquals($query, Boolbuilder\transform($group, $options));
     }
+
+    public function testAllTypesUserRuleFunc()
+    {
+        $group = [
+            'condition' => 'OR',
+            'rules' => [
+                [
+                    'QB' => 'Message',
+                    'condition' => 'AND',
+                    'rules' => [
+                        [
+                            'field' => 'user',
+                            'type' => 'string',
+                            'operator' => 'contains',
+                            'value' => 'kimchy'
+                        ]
+                    ]
+                ],
+                [
+                    'QB' => 'Chat',
+                    'condition' => 'AND',
+                    'rules' => [
+                        [
+                            'field' => 'user',
+                            'type' => 'string',
+                            'operator' => 'contains',
+                            'value' => 'elasticsearch'
+                        ]
+                    ]
+                ]
+            ]
+        ];
+
+        $options = [];
+        $options['ruleFuncMap'] = [];
+        $options['ruleFuncMap']['*'] = [];
+        $options['ruleFuncMap']['*']['user'] = function ($group, $rule, $options) {
+            $rule['value'] = strtoupper($rule['value']);
+            return $rule;
+        };
+
+        $query = [
+            'bool' => [
+                'should' => [
+                    [
+                        'bool' => [
+                            'must' => [
+                                [
+                                    'match' => [
+                                        'user' => 'KIMCHY'
+                                    ]
+                                ]
+                            ]
+                        ]
+                    ],
+                    [
+                        'bool' => [
+                            'must' => [
+                                [
+                                    'match' => [
+                                        'user' => 'ELASTICSEARCH'
+                                    ]
+                                ]
+                            ]
+                        ]
+                    ]
+                ]
+            ]
+        ];
+        $this->assertEquals($query, Boolbuilder\transform($group, $options));
+    }
 }

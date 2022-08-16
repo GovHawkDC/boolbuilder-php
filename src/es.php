@@ -135,6 +135,14 @@ function getQueryHelper($group, $rule)
                     ]
                 ]
             ];
+        case 'rolling':
+            return [
+                'range' => [
+                    $rule['field'] => [
+                        'gte' => $rule['value']
+                    ]
+                ]
+            ];
         case 'in':
         case 'not_in':
             if (is_string($rule['value'])) {
