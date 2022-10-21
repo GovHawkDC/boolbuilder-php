@@ -114,10 +114,14 @@ function transform($group, $options = [], $maxDepth = 24)
 
 function transformGroup($group, $options, $parentQB, $depth, $maxDepth)
 {
+    print_r("TG");
     if ($depth > $maxDepth) {
         throw new \Exception('Max depth exceeded');
     }
+    print_r($group);
     $group = handleGroup($group, $options, $parentQB);
+    print_r("TG group");
+    print_r($group);
     if (empty($group['rules'])) {
         return [];
     }
