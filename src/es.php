@@ -136,6 +136,16 @@ function getQueryHelper($group, $rule)
                 ]
             ];
         case 'rolling':
+            if (stripos(strtolower($rule['value']), 'now+') !== false) {
+                return [
+                    'range' => [
+                        $rule['field'] => [
+                            'gte' => 'now',
+                            'lte' => $rule['value']
+                        ]
+                    ]
+                ];
+            }
             return [
                 'range' => [
                     $rule['field'] => [
