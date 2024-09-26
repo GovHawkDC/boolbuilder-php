@@ -190,6 +190,19 @@ function getQueryHelper($group, $rule)
                     ]
                 ]
             ];
+        case 'more_like_this':
+            return [
+                'more_like_this' => [
+                    'fields' => [$rule['field']],
+                    'like' => [
+                        [
+                            '_index' => $rule['index'],
+                            '_type' =>  $rule['type'],
+                            '_id' => strval($rule['value']),
+                        ],
+                    ],
+                ],
+            ];
         case 'proximity':
             return [
                 'match_phrase' => [

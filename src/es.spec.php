@@ -45,6 +45,29 @@ final class ESTest extends TestCase
         $this->assertEquals($query, ES\getQueryHelper([], $rule));
     }
 
+    public function testMoreLikeThisQuery()
+    {
+        $rule = [];
+        $rule['field'] = 'versions';
+        $rule['operator'] = 'more_like_this';
+        $rule['index'] = 'search';
+        $rule['type'] = 'bill';
+        $rule['value'] = '1234';
+
+        $query = [];
+        $query['more_like_this'] = [];
+        $query['more_like_this']['fields'] = ['versions'];
+        $query['more_like_this']['like'] = [
+            [
+            '_index' => 'search',
+            '_type' => 'bill',
+            '_id' => '1234',
+            ]
+        ];
+
+        $this->assertEquals($query, ES\getQueryHelper([], $rule));
+    }
+
     /**
      * @see https://www.elastic.co/guide/en/elasticsearch/reference/2.0/query-dsl-range-query.html
      */
